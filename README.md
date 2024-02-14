@@ -14,3 +14,13 @@ pip  install  pyaviso
 ```
 
 Authentication is not required to access notifications at this time; however, Destination Earth credentials will be supported in the future.
+
+### Explanation
+
+#### `aviso-extremes-dt.py`
+
+This is an example script to listen for notifications described in the request dictionary at the beginning of the script. It executes an echo trigger per notification, which means printing a notification to the screen. After printing the notification, Aviso polls for new notifications until the user interrupts the script.
+
+#### `aviso-extremes-dt-from-time.py`
+
+This example illustrates the functionality of searching for old notifications where available. This way users can explicitly replay past notifications and executes triggers. This particular example utilizes a function trigger per found notifications according to defined request dictionary. Example function trigger prints notification to the screen. After printing the notification, Aviso polls for new notifications until the user interrupts the script.
