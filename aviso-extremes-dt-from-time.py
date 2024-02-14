@@ -2,12 +2,13 @@ from datetime import datetime
 from pprint import pprint as pp
 
 from pyaviso import NotificationManager, user_config
+import sys
 
 
 # Constants
 START_DATE = datetime(1999, 12, 12)  # Start date for the notification listener
 LISTENER_EVENT = "data"  # Event for the listener, options are mars and dissemination
-TRIGGER_TYPE = "echo"  # Type of trigger for the listener
+TRIGGER_TYPE = "function"  # Type of trigger for the listener
 REQUEST = {
     "class": "rd",
     "expver": "i7yv",
@@ -33,12 +34,22 @@ CONFIG = {
 }  # manually defined configuration
 
 
+def do_something(notification):
+    """
+    Function for the listener to trigger.
+    """
+    pp(notification)
+
+
 def create_listener():
     """
     Creates and returns a listener configuration.
     """
 
-    trigger = {"type": TRIGGER_TYPE}  # Define the trigger for the listener
+    trigger = {
+        "type": TRIGGER_TYPE,
+        "function": do_something,
+    }  # Define the trigger for the listener
     # Return the complete listener configuration
     return {"event": LISTENER_EVENT, "request": REQUEST, "triggers": [trigger]}
 
@@ -51,6 +62,7 @@ def main():
         print("loaded config:")
         pp(CONFIG)
         nm = NotificationManager()  # Initialize the NotificationManager
+
         nm.listen(
             listeners=listeners_config, from_date=START_DATE, config=config
         )  # Start listening
