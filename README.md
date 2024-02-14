@@ -21,7 +21,7 @@ Authentication is not required to access notifications at this time; however, De
 
 This is an example script to listen for notifications described in the request dictionary at the beginning of the script. It executes an echo trigger per notification, which means printing a notification to the screen. After printing the notification, Aviso polls for new notifications until the user interrupts the script.
 
-> **IMPORTANT NOTE**
+> **IMPORTANT NOTE:**<br/> 
 Before listening to new notifications, Aviso by default checks what the last notification was, and it will then return all the notifications that have been missed since. It will then carry on by listening to new ones. The first time the application runs, however, no previous notification will be returned. This behaviour allows users not to miss any notifications in the event of machine reboots.
 
 #### `aviso-extremes-dt-from-time.py`
