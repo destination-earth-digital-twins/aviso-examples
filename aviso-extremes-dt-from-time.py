@@ -2,29 +2,27 @@ from datetime import datetime
 from pprint import pprint as pp
 
 from pyaviso import NotificationManager, user_config
-import sys
-
 
 # Constants
 START_DATE = datetime(1999, 12, 12)  # Start date for the notification listener
 LISTENER_EVENT = "data"  # Event for the listener, options are mars and dissemination
 TRIGGER_TYPE = "function"  # Type of trigger for the listener
 REQUEST = {
-    "class": "rd",
-    "expver": "i7yv",
-    "stream": "oper",
+    "class": "d1",
+    "expver": "0001",
+    "stream": "wave",
     "step": [1, 2, 3],
     "levtype": "sfc",
     "type": "fc",
 }  # Request configuration for the listener
 CONFIG = {
     "notification_engine": {
-        "host": "aviso.apps.lumi.ewctest.link",
+        "host": "aviso.lumi.apps.dte.destination-earth.eu",
         "port": 443,
         "https": True,
     },
     "configuration_engine": {
-        "host": "aviso.apps.lumi.ewctest.link",
+        "host": "aviso.lumi.apps.dte.destination-earth.eu",
         "port": 443,
         "https": True,
     },
