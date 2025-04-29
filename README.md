@@ -27,3 +27,12 @@ Before listening to new notifications, Aviso by default checks what the last not
 #### `aviso-extremes-dt-from-time.py`
 
 This example illustrates the functionality of searching for old notifications where available. This way users can explicitly replay past notifications and executes triggers. This particular example utilizes a function trigger per found notifications according to defined request dictionary. Example function trigger prints notification to the screen. After printing the notification, Aviso polls for new notifications until the user interrupts the script.
+
+## Aviso Quota Limits for DestinE
+
+To ensure system stability and fair usage, the following operational limits are enforced:
+
+- **Rate Limit:** Up to 50 requests per second. This limit may be adjusted based on system usage.
+- **Concurrent Operations Limit:** Currently not limited.
+
+Please plan your usage accordingly to avoid interruptions.
