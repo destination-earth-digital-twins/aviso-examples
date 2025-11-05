@@ -28,6 +28,10 @@ Before listening to new notifications, Aviso by default checks what the last not
 
 This example illustrates the functionality of searching for old notifications where available. This way users can explicitly replay past notifications and executes triggers. This particular example utilizes a function trigger per found notifications according to defined request dictionary. Example function trigger prints notification to the screen. After printing the notification, Aviso polls for new notifications until the user interrupts the script.
 
+#### `aviso-extremes-dt-earthkit-example.py`
+
+This example demonstrates a complete end-to-end workflow that integrates Aviso notifications with data retrieval, processing, and visualization using the earthkit ecosystem. When a notification is received about new Extremes DT data, the function trigger automatically retrieves the corresponding temperature data via Polytope, regrids it to a coarser resolution for easier processing, and generates a visualization map of Europe.
+
 ## Aviso Quota Limits for DestinE
 
 To ensure system stability and fair usage, the following operational limits are enforced:
