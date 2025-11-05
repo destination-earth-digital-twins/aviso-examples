@@ -7,7 +7,7 @@ import earthkit.regrid
 from pyaviso import NotificationManager, user_config
 
 # Constants
-START_DATE = datetime(2025, 11, 4)  # Start date for the notification listener
+START_DATE = datetime(2025, 11, 5)  # Start date for the notification listener
 LISTENER_EVENT = "data"  # Event for the listener, options are mars and dissemination
 TRIGGER_TYPE = "function"  # Type of trigger for the listener
 REQUEST = {
