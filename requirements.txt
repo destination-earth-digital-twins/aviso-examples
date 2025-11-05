@@ -1,1 +1,9 @@
 pyaviso
+conflator
+lxml
+requests
+earthkit-data 
+earthkit-plots 
+earthkit-regrid 
+cf-units
+polytope-client
