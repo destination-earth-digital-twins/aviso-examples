@@ -116,7 +116,7 @@ Terminate execution using:
 ``` bash
 Ctrl + C
 ```
-
+------------------------------------------------------------------------
 
 # 4. Description of Example Scripts
 
