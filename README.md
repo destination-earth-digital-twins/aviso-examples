@@ -118,6 +118,7 @@ Ctrl + C
 ```
 ------------------------------------------------------------------------
 
+
 # 4. Description of Example Scripts
 
 ## 4.1 `aviso-extremes-dt.py`
@@ -130,7 +131,8 @@ This script:
     screen).
 4.  Continues polling until interrupted.
 
-> [!WARNING] IMPORTANT NOTE:
+
+> ⚠️ **IMPORTANT NOTE:**  
 >Before listening to new notifications, Aviso:
 >-   Checks the last received notification.
 >-   Retrieves any missed notifications.
