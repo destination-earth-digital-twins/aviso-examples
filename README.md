@@ -47,7 +47,7 @@ The scripts demonstrate:
 
 ## 2.1 Prerequisites
 
--   Python >= **3.6+** 
+-   Python >= **3.6** 
 -   Outbound HTTPS connectivity to:
 ``` bash
 aviso.lumi.apps.dte.destination-earth.eu (TCP port 443)
