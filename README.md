@@ -50,9 +50,10 @@ The scripts demonstrate:
 -   Python >= **3.6** 
 -   Outbound HTTPS connectivity to:
 aviso.lumi.apps.dte.destination-earth.eu (TCP port 443)
-```
+
 
 If operating within a corporate or institutional network, ensure that firewall, proxy, and network security policies permit outbound access to this endpoint.
+
 ``` bash
 curl -v https://aviso.lumi.apps.dte.destination-earth.eu
 ```
