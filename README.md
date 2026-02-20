@@ -166,7 +166,7 @@ This example demonstrates a complete automated workflow:
 2.  Trigger a function when a notification is received.
 3.  Retrieve temperature data via Polytope.
 4.  Regrid to a coarser resolution (for faster processing)
-5.  Generate a plot of the data bounded by Europe using earthkit plots library
+5.  Generate a plot of the data bounded by Europe using Earthkit plots library.
 
 It shows how Aviso can act as an event-driven entry point for data
 processing pipelines.
