@@ -1,4 +1,4 @@
-# Aviso Examples for DT Data Availability Notifications
+# Aviso Examples for DT Data Availability Notifications <!-- omit from toc -->
 
 This repository demonstrates how to access **Destination Earth (DestinE)
 Digital Twin (DT)** data availability notifications using the Aviso
@@ -11,10 +11,8 @@ It provides simple example scripts to:
 -   Trigger automated workflows when new data becomes available
 
 ------------------------------------------------------------------------
-# Table of Contents
+# Table of Contents <!-- omit from toc -->
 
-- [Aviso Examples for DT Data Availability Notifications](#aviso-examples-for-dt-data-availability-notifications)
-- [Table of Contents](#table-of-contents)
 - [1. Overview](#1-overview)
 - [2. Getting Started](#2-getting-started)
   - [2.1 Prerequisites](#21-prerequisites)
