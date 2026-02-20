@@ -49,8 +49,7 @@ The scripts demonstrate:
 
 -   Python >= **3.6** 
 -   Outbound HTTPS connectivity to:
-aviso.lumi.apps.dte.destination-earth.eu (TCP port 443)
-
+**aviso.lumi.apps.dte.destination-earth.eu (TCP port 443)**
 
 If operating within a corporate or institutional network, ensure that firewall, proxy, and network security policies permit outbound access to this endpoint.
 
@@ -94,20 +93,21 @@ python3 aviso-extremes-dt.py
 
 ### Expected Output
 
-You should see configuration details similar to:
+As output you should expect something like:
+
 ``` bash
-    loaded config:
-    {'auth_type': 'none',
-     'configuration_engine': {'host': 'aviso.lumi.apps.dte.destination-earth.eu',
-                              'https': True,
-                              'port': 443},
-     'notification_engine': {'host': 'aviso.lumi.apps.dte.destination-earth.eu',
-                             'https': True,
-                             'port': 443},
-     'remote_schema': True,
-     'schema_parser': 'generic'
-     }
-    Listening to /de/data/ at aviso.lumi.apps.dte.destination-earth.eu:443...
+loaded config:
+{'auth_type': 'none',
+  'configuration_engine': {'host': 'aviso.lumi.apps.dte.destination-earth.eu',
+                          'https': True,
+                          'port': 443},
+  'notification_engine': {'host': 'aviso.lumi.apps.dte.destination-earth.eu',
+                          'https': True,
+                          'port': 443},
+  'remote_schema': True,
+  'schema_parser': 'generic'
+  }
+Listening to /de/data/ at aviso.lumi.apps.dte.destination-earth.eu:443...
 ```
 
 Upon execution, the client loads its configuration and subscribes to the specified notification topic. Notifications will be printed to standard output as they are received.
