@@ -1,233 +1,277 @@
-# Aviso User Guide — Destination Earth Digital Twin Data Notifications
+# Aviso for Destination Earth — Extremes Digital Twin <!-- omit from toc -->
 
-This guide describes how to use **Aviso** to receive real‑time and historical
-notifications about the availability of **Destination Earth (DestinE) Digital
-Twin** data, with a focus on the **Extremes Digital Twin (Extremes‑DT)**.
+This repository provides documentation and example scripts for using **Aviso**
+to receive data-availability notifications for **Destination Earth (DestinE)
+Digital Twin** data, with a focus on the **Extremes Digital Twin (Extremes-DT)**.
 
-It complements the [`README.md`](README.md) of this repository and the upstream
-[pyaviso documentation](https://pyaviso.readthedocs.io/en/latest/).
+## Table of Contents <!-- omit from toc -->
 
----
-
-## Table of Contents
-
-- [Aviso User Guide — Destination Earth Digital Twin Data Notifications](#aviso-user-guide--destination-earth-digital-twin-data-notifications)
-  - [Table of Contents](#table-of-contents)
-  - [1. What is Aviso?](#1-what-is-aviso)
-  - [2. Aviso in the Destination Earth context](#2-aviso-in-the-destination-earth-context)
-  - [3. Requirements](#3-requirements)
-  - [4. Installation](#4-installation)
-  - [3. Service endpoint and connectivity](#3-service-endpoint-and-connectivity)
-  - [5. Core concepts](#5-core-concepts)
-    - [5.1 Listener](#51-listener)
-    - [5.2 Event](#52-event)
-    - [5.3 Request keys (MARS‑like)](#53-request-keys-marslike)
-    - [5.4 Triggers](#54-triggers)
-    - [5.5 Notification payload](#55-notification-payload)
-  - [6. Catch‑up and historical replay](#6-catchup-and-historical-replay)
-    - [6.1 `from_date` is NOT a forecast base time](#61-from_date-is-not-a-forecast-base-time)
-  - [7. Scope: Extremes Digital Twin only](#7-scope-extremes-digital-twin-only)
-  - [8. Examples in this repository](#8-examples-in-this-repository)
-  - [9. Quotas, throttling and best practices](#9-quotas-throttling-and-best-practices)
-  - [10. Troubleshooting](#10-troubleshooting)
-  - [11. References](#11-references)
+- [1. What is Aviso?](#1-what-is-aviso)
+- [2. Aviso in the Destination Earth Context](#2-aviso-in-the-destination-earth-context)
+- [3. Requirements and Access](#3-requirements-and-access)
+- [4. Installation](#4-installation)
+- [5. Service Endpoints and Connectivity](#5-service-endpoints-and-connectivity)
+- [6. Running the Examples](#6-running-the-examples)
+- [7. Core Concepts](#7-core-concepts)
+  - [7.1 Listener](#71-listener)
+  - [7.2 Event](#72-event)
+  - [7.3 Request Keys (MARS-like)](#73-request-keys-mars-like)
+  - [7.4 Triggers](#74-triggers)
+  - [7.5 Notification Payload](#75-notification-payload)
+- [8. Catch-up and Historical Replay](#8-catch-up-and-historical-replay)
+  - [8.1 `from_date` Is Not a Forecast Base Time](#81-from_date-is-not-a-forecast-base-time)
+- [9. Scope: Extremes Digital Twin Only](#9-scope-extremes-digital-twin-only)
+- [10. Examples in this Repository](#10-examples-in-this-repository)
+- [11. Quotas, Throttling, and Best Practices](#11-quotas-throttling-and-best-practices)
+- [12. Troubleshooting](#12-troubleshooting)
+- [13. References](#13-references)
 
 ---
 
 ## 1. What is Aviso?
 
-[Aviso](https://github.com/ecmwf/aviso) is an open‑source software developed by
-**ECMWF** that notifies time‑critical events across HPC and cloud systems,
-enabling event‑driven workflows that span multiple domains.
+[Aviso](https://github.com/ecmwf/aviso) is an open-source notification system
+developed by **ECMWF** that broadcasts time-critical events across HPC and cloud
+systems, enabling event-driven workflows that span multiple domains.
 
 In short, Aviso lets you:
 
-- **Define events** you want to be notified about (e.g. "a new forecast step is
-  available").
-- **Define triggers** to execute when a matching notification is received
-  (print, log, run a shell command, POST a CloudEvent, run a Python function).
-- **Send and receive notifications** in near real time.
-
+- **Subscribe to events** you care about (e.g. "a new forecast step is ready").
+- **Define triggers** that execute when a matching notification arrives — print,
+  log, run a shell command, POST a CloudEvent, or call a Python function.
+- **React in near real time** rather than polling for new data.
 
 ---
 
-## 2. Aviso in the Destination Earth context
+## 2. Aviso in the Destination Earth Context
 
-**Aviso is the mechanism that informs users
-the moment a new piece of DT data becomes available**, so that downstream
-workflows (post‑processing, visualization, model coupling, alerting) can react
-immediately instead of polling.
+Aviso is the mechanism that informs users the moment new DT data becomes
+available, so that downstream workflows — post-processing, visualisation, model
+coupling, alerting — can react immediately.
 
-Aviso sofware is developed by ECMWF and is used on various internal workflows,
-therefore, a lot of the current documentation is tailored to internal user.
-Since Aviso is also available throught the Destination Earth initiative, we have
-compiled this user documentation and examples, which is tailored to Destine use.
-Please do not refer to broader aviso documentation and examples since this is
-not going to work in the scope of destination earth.
+Aviso is developed and used extensively at ECMWF across internal operational
+workflows, so much of the upstream documentation is aimed at ECMWF-internal
+users. **The examples and documentation in this repository are tailored
+specifically to Destination Earth.** Generic pyaviso examples from the upstream
+docs may reference events, endpoints, or authentication methods that do not
+apply in the DestinE context.
 
-> **Important scope note.**
-> Although Digital Twin data is produced on various EuroHPCs (Mare Nostrum, Lumi,
-> Leonardo), the current Aviso server is currently only deployed on the
-> **LUMI Databridge**, and only exposes data‑availability notifications for the
-> **Extremes Digital Twins**.
-> Climate DT data is currently not surfaced through Aviso.
-> See [Section 7](#7-scope-extremes-digital-twin-only).
+> [!WARNING]
+> Although Digital Twin data is produced on multiple EuroHPC systems (Mare
+> Nostrum, LUMI, Leonardo), the Aviso server is currently deployed only on the
+> **LUMI Databridge** and exposes notifications for the **Extremes Digital
+> Twin only**. Climate DT notifications are not currently available through
+> Aviso.
+>
+> See [Section 9](#9-scope-extremes-digital-twin-only) for details.
 
 ---
 
-## 3. Requirements 
+## 3. Requirements and Access
 
-In order to use Aviso for Destine, users have to create
-an account in the Destination Earth Platform and apply
-for upgraded access. For more details, please visit https://platform.destine.eu/support-pages/access-policy/
+> [!NOTE]
+> Listening to Aviso notifications does **not** require authentication — the
+> current endpoint uses `auth_type: none`. However, downloading data via
+> Polytope (used in the Earthkit example) **does** require valid DESP
+> credentials.
 
-Once access is granted, you need to authenticate using the [`desp-authentication.py`]. When you run the script, it will prompt you for your Destination Earth username and password (the same credentials you used to register on the platform).
+To obtain DESP credentials:
 
-After successful authentication, the script retrieves a long-living access token from the Destination Earth Service Platform (DESP) and stores it in a file named `.polytopeapirc` in your home directory. As long as this file exists, re-authentication is not necessary.
+1. Register at the [DestinE Platform](https://platform.destine.eu/).
+2. Apply for upgraded access as described in the
+   [access policy](https://platform.destine.eu/support-pages/access-policy/).
+
+Once upgraded access is granted, run the [`desp-authentication.py`](desp-authentication.py) script.
+It will prompt for your DestinE username and password, then retrieve a
+long-lived offline token from the Destination Earth Service Platform (DESP)
+and store it at `~/.polytopeapirc`. Re-authentication is only needed when that
+token expires.
+
+---
 
 ## 4. Installation
+
 Python ≥ 3.6 is required.
 
-In order to install all required libraries to run these
-examples simply install our requirements.txt file
+Install all dependencies used in this repository:
+
 ```bash
 pip install -r requirements.txt
 ```
-For a minimal installation
+
+For a minimal installation (listener only, no data download or plotting):
+
 ```bash
 pip install pyaviso
 ```
 
-
 ---
 
+## 5. Service Endpoints and Connectivity
 
-## 3. Service endpoint and connectivity
+| Setting                  | Value                                                    |
+| ------------------------ | -------------------------------------------------------- |
+| Aviso host               | `aviso.lumi.apps.dte.destination-earth.eu`               |
+| Port                     | `443` (HTTPS)                                            |
+| Polytope host (data)     | `polytope.lumi.apps.dte.destination-earth.eu`            |
 
-| Setting              | Value                                                |
-| -------------------- | ---------------------------------------------------- |
-| Host                 | `aviso.lumi.apps.dte.destination-earth.eu`           |
-| Port                 | `443` (HTTPS)                                        |
-| Authentication       | None (currently; DESP auth support is planned)       |
-| Notification topic   | `/de/data/`                                          |
-
-Connectivity check:
+Verify connectivity before running the examples:
 
 ```bash
 curl -v https://aviso.lumi.apps.dte.destination-earth.eu
 ```
 
-If you are behind a corporate proxy / firewall, ensure outbound TCP 443 to the
-host above is allowed.
-
-The matching Polytope data endpoint used by the Earthkit example is:
-
-```
-polytope.lumi.apps.dte.destination-earth.eu
-```
-
+If you are on a corporate or institutional network, ensure outbound TCP 443 to
+the Aviso host is permitted by your firewall or proxy.
 
 ---
 
+## 6. Running the Examples
 
-## 5. Core concepts
+All scripts can be run directly from the repository root.
 
-### 5.1 Listener
+**Real-time listener (echo trigger):**
 
-A listener is a Python object that tells Aviso:
+```bash
+python3 aviso-extremes-dt.py
+```
 
-1. **what** event to subscribe to (`event`),
-2. **which** notifications to keep (`request` — a filter dictionary),
-3. **what** to do when a matching notification arrives (`triggers`).
+**Replay from a past publish time, then continue live:**
 
-In Python:
+```bash
+python3 aviso-extremes-dt-from-time.py
+```
+
+**End-to-end Earthkit/Polytope workflow:**
+
+```bash
+python3 aviso-extremes-dt-earthkit-example.py
+```
+
+On startup you should see output similar to:
+
+```text
+loaded config:
+{'auth_type': 'none',
+ 'configuration_engine': {'host': 'aviso.lumi.apps.dte.destination-earth.eu',
+                          'https': True,
+                          'port': 443},
+ 'notification_engine': {'host': 'aviso.lumi.apps.dte.destination-earth.eu',
+                         'https': True,
+                         'port': 443},
+ 'remote_schema': True,
+ 'schema_parser': 'generic'}
+Listening to /de/data/ at aviso.lumi.apps.dte.destination-earth.eu:443...
+```
+
+Notifications matching your filter will be printed to stdout as they arrive.
+Stop with `Ctrl + C`.
+
+> [!IMPORTANT]
+> On every startup, Aviso checks the last notification it received and replays
+> any that were missed before switching to real-time listening. On the very
+> first run there is no prior state, so no historical notifications are
+> returned. This catch-up behaviour ensures no notifications are lost across
+> restarts or outages. See [Section 8](#8-catch-up-and-historical-replay) for
+> full details.
+
+---
+
+## 7. Core Concepts
+
+### 7.1 Listener
+
+A listener is a Python dictionary that tells Aviso what to watch for and what to
+do when a match is found. It has three required parts:
+
+1. **`event`** — the kind of event to listen for.
+2. **`request`** — a filter dictionary; only notifications whose metadata
+   matches all keys are delivered.
+3. **`triggers`** — one or more actions to execute per matching notification.
 
 ```python
 listener = {
     "event": "data",
-    "request": { ... },        # filter
+    "request": { ... },        # filter keys
     "triggers": [{...}, ...],  # one or more triggers
 }
 listeners_config = {"listeners": [listener]}
 ```
 
-### 5.2 Event
+### 7.2 Event
 
-For DestinE DT data the event is always:
+For DestinE Digital Twin data, the event is always:
 
 ```python
 LISTENER_EVENT = "data"
 ```
 
-(The `pyaviso` schema also defines `mars` and `dissemination` events, used in
-the ECMWF operational context; they are **not** what you want for DT data.)
+The `pyaviso` schema also defines `mars` and `dissemination` events used in
+ECMWF operational contexts — these are **not** relevant for DT data.
 
-### 5.3 Request keys (MARS‑like)
+### 7.3 Request Keys (MARS-like)
 
-The `request` dictionary uses keys borrowed from the MARS language. Aviso
-publishes notifications whose metadata matches **every** key/value pair you
-specify. The fewer keys you provide, the broader your subscription.
+The `request` dictionary uses keys from the MARS language. A notification is
+delivered only when **every** specified key matches. The fewer keys you include,
+the broader the subscription.
 
-Keys commonly relevant to Extremes‑DT:
+| Key       | Typical value             | Meaning                                         |
+| --------- | ------------------------- | ----------------------------------------------- |
+| `class`   | `"d1"`                    | Destination Earth class                         |
+| `expver`  | `"0001"`                  | Experiment version (operational)                |
+| `stream`  | `"oper"`, `"wave"`        | Data stream                                     |
+| `type`    | `"fc"`                    | Forecast                                        |
+| `levtype` | `"sfc"`, `"pl"`, `"sol"`  | Level type (surface, pressure levels, soil)     |
+| `date`    | `"YYYYMMDD"`              | Forecast base date                              |
+| `time`    | `"0000"`, `"1200"`        | Forecast base time                              |
+| `step`    | `0`, `[0, 3, 6, ...]`     | Forecast lead time in hours                     |
 
-| Key       | Typical value                              | Meaning                                                                |
-| --------- | ------------------------------------------ | ---------------------------------------------------------------------- |
-| `class`   | `"d1"`                                     | Destination Earth class.                                               |
-| `expver`  | `"0001"`                                   | Experiment version (operational).                                      |
-| `stream`  | `"oper"`, `"wave"`                         | Stream of data.                                                        |
-| `type`    | `"fc"`                                     | Forecast.                                                              |
-| `levtype` | `"sfc"`, `"pl"`, `"sol"`                   | Level type (surface, pressure levels, soil…).                          |
-| `date`    | `"YYYYMMDD"`                               | Forecast **base** date.                                                |
-| `time`    | `"0000"`, `"1200"`                         | Forecast **base** time.                                                |
-| `step`    | int or list, e.g. `[0, 3, 6, 9, 12]`       | Forecast step in hours.                                                |
-
-Each value may be a single value or a list — for example
+Each value can be a scalar or a list — for example,
 `"step": [0, 3, 6, 9, 12, 15, 18, 21, 24]` matches any of those steps.
 
-### 5.4 Triggers
+### 7.4 Triggers
 
-Triggers are what Aviso does when a notification matches. Multiple triggers per
-listener are allowed; each runs as an independent process.
+Triggers define what happens when a notification matches. Multiple triggers per
+listener are supported; each runs as an independent process.
 
-| Type       | Use case                                                            |
-| ---------- | ------------------------------------------------------------------- |
-| `echo`     | Print to stdout. Simplest, good for testing.                        |
-| `log`      | Append to a log file.                                               |
-| `command`  | Run a shell command; placeholders like `${request.step}` are expanded. |
-| `post`     | Forward the notification as a [CloudEvent](https://cloudevents.io/) over HTTP or AWS SNS. |
-| `function` | Call a Python function (used by the Earthkit example).              |
+| Type       | Use case                                                                         |
+| ---------- | -------------------------------------------------------------------------------- |
+| `echo`     | Print to stdout — simplest, good for testing.                                    |
+| `log`      | Append notifications to a log file.                                              |
+| `command`  | Run a shell command; supports substitutions like `${request.step}`.              |
+| `post`     | Forward as a [CloudEvent](https://cloudevents.io/) over HTTP or AWS SNS.         |
+| `function` | Call a Python function directly — used in the Earthkit example.                  |
 
-Example minimal Python triggers:
+Example trigger definitions:
 
 ```python
-# Echo
+# Echo (no extra config)
 trigger = {"type": "echo"}
 
-# Log
+# Log to file
 trigger = {"type": "log", "path": "aviso.log"}
 
-# Shell command (with parameter substitution)
+# Shell command with request field substitution
 trigger = {
     "type": "command",
     "command": "./process.sh --date ${request.date} --step ${request.step}",
 }
 
-# Python function
-def on_notification(n): ...
+# Python callback
+def on_notification(notification): ...
 trigger = {"type": "function", "function": on_notification}
 ```
 
-### 5.5 Notification payload
+### 7.5 Notification Payload
 
-The dictionary passed to a `function` trigger (and the JSON sent by `post`) has
-this shape:
+The dictionary received by a `function` trigger (and sent by the `post` trigger
+as JSON) looks like this:
 
 ```python
 {
     "event": "data",
     "request": {
         "class":   "d1",
-        "dataset": "extremes-dt",
         "expver":  "0001",
         "stream":  "oper",
         "type":    "fc",
@@ -235,30 +279,29 @@ this shape:
         "date":    "20251104",
         "time":    "0000",
         "step":    "6",
-        # …possibly more keys depending on the producer
+        # additional keys may be present depending on the producer
     },
-    # "location" / "payload" fields may also be present
+    # "location" and "payload" fields may also appear
 }
 ```
 
-In a `function` trigger you typically use the values from `notification["request"]`
-to construct a Polytope (or `earthkit.data`) request and download the data.
+In a `function` trigger, the values from `notification["request"]` are typically
+used to construct a Polytope or `earthkit.data` request to retrieve the data.
 
 ---
 
-## 6. Catch‑up and historical replay
+## 8. Catch-up and Historical Replay
 
-When you call `nm.listen(...)`, Aviso by default:
+When `nm.listen(...)` is called, Aviso by default:
 
-1. Checks the **last notification** received (stored locally per‑user).
-2. Replays any notifications that were missed since.
-3. Switches to **real‑time** listening.
+1. Checks the **last notification received** (persisted locally per user).
+2. Replays any notifications missed since then.
+3. Switches to **real-time** listening.
 
-This means that after a reboot or transient outage you do not lose notifications.
-The very first time you run a listener, there is no recorded state, so no catch‑up
-happens.
+After a reboot or transient outage, no notifications are lost. On the very first
+run there is no prior state, so no catch-up occurs.
 
-You can explicitly request a starting point with `from_date`:
+To explicitly set a starting point, use `from_date`:
 
 ```python
 nm.listen(
@@ -268,108 +311,104 @@ nm.listen(
 )
 ```
 
-A second optional `to_date` parameter bounds the replay; if set, Aviso terminates
-once the historical window has been processed (otherwise it continues into
-real‑time).
+An optional `to_date` bounds the replay window; when set, Aviso exits after
+processing the historical range instead of continuing into real-time.
 
-### 6.1 `from_date` is NOT a forecast base time
+### 8.1 `from_date` Is Not a Forecast Base Time
 
-> **Common pitfall.** `from_date` is the **wall‑clock time at which the
-> notification was published on the Aviso server** — i.e. the moment the data
-> producer announced "this product is now available". It is **not** the forecast
-> base time (`date` + `time` keys inside the request).
+> [!WARNING]
+> `from_date` is the **wall-clock time at which the notification was published**
+> on the Aviso server — i.e. when the data producer announced that a product was
+> available. It is **not** the forecast base time (`date` + `time` in the
+> request).
 >
-> A notification for the forecast initialized at `2025‑11‑04 00 UTC` step `120`
-> is published several hours **after** `2025‑11‑04 00 UTC`, when that step has
-> actually been produced. So:
+> A notification for the forecast initialised at `2025-11-04 00 UTC` step 120 is
+> published several hours **after** `2025-11-04 00 UTC`, once that step has been
+> produced. Therefore:
 >
-> - If you want to replay every notification announcing data for the
->   `2025‑11‑04 00 UTC` cycle, set `from_date` to a time **before** the cycle
->   started running (e.g. `datetime(2025, 11, 3)`), and filter on
->   `"date": "20251104", "time": "0000"` inside the `request`.
-> - Setting `from_date=datetime(2025, 11, 4)` will pick up only notifications
->   **published** from that moment on, which may exclude early steps and
->   include notifications for forecasts whose base time is **before**
->   `2025‑11‑04`.
+> - To replay all notifications for the `2025-11-04 00 UTC` cycle, set
+>   `from_date` to a time **before** the cycle started (e.g.
+>   `datetime(2025, 11, 3)`) and narrow the selection using
+>   `"date": "20251104", "time": "0000"` in `request`.
+> - Setting `from_date=datetime(2025, 11, 4)` captures only notifications
+>   **published** from that moment onward, which may miss early steps and
+>   include products from prior forecast cycles.
 >
-> When in doubt, use a `from_date` clearly earlier than the forecast base time
-> you care about and let the `request` filter do the selection.
+> When in doubt, set `from_date` conservatively early and let the `request`
+> filter do the selection.
 
 ---
 
-## 7. Scope: Extremes Digital Twin only
+## 9. Scope: Extremes Digital Twin Only
 
-The notifications surfaced through `aviso.lumi.apps.dte.destination-earth.eu`
-on the topic used by these examples concern the **Extremes Digital Twin**:
+Notifications available through the endpoint used in these examples are limited
+to the **Extremes Digital Twin**:
 
-- `class: d1`
-- `dataset: extremes-dt`
-- `expver: 0001`
+- `class: d1`, `expver: 0001`
 - `stream: oper` (and `wave` for the wave component)
-- 4 km global resolution; operational production began on **2023‑12‑11**.
+- 4 km global resolution; operational production began on **2023-12-11**
 
-Notifications for the **Climate DT** are produced at a different cadence and
-are not part of this real‑time data‑availability stream. Trying to subscribe
-with e.g. `dataset: climate-dt` against this endpoint will simply yield no
-matches.
+Climate DT data is not available through Aviso at this time. Subscribing with
+`dataset: climate-dt` will produce no matches.
 
-Use the [Extremes DT Data Portfolio](https://confluence.ecmwf.int/display/DDCZ/Extremes+DT+data+catalogue) to identify which
-variables, levels and steps are produced for Extremes‑DT before constructing
+Consult the [Extremes DT Data Catalogue](https://confluence.ecmwf.int/display/DDCZ/Extremes+DT+data+catalogue)
+to identify available variables, levels, and forecast steps before constructing
 your request filter.
 
 ---
 
-## 8. Examples in this repository
+## 10. Examples in this Repository
 
-| Script                                                                                   | What it shows                                                                |
-| ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| [`aviso-extremes-dt.py`](aviso-extremes-dt.py)                                           | Minimal real‑time listener with the `echo` trigger.                          |
-| [`aviso-extremes-dt-from-time.py`](aviso-extremes-dt-from-time.py)                       | Same listener, replaying from a given publish time (`from_date`).            |
-| [`aviso-extremes-dt-earthkit-example.py`](aviso-extremes-dt-earthkit-example.py)         | End‑to‑end workflow: notification → Polytope download → regrid → plot.       |
-| [`examples/aviso-extremes-dt-log.py`](examples/aviso-extremes-dt-log.py)                 | Persist every notification to a structured JSON‑lines log file.              |
-| [`examples/aviso-extremes-dt-multi-listener.py`](examples/aviso-extremes-dt-multi-listener.py) | Two listeners with different filters (surface vs. wave) and different actions. |
-| [`examples/aviso-extremes-dt-replay-window.py`](examples/aviso-extremes-dt-replay-window.py) | Replay a bounded historical window (`from_date` + `to_date`) and exit.       |
-| [`examples/aviso-extremes-dt-polytope-download.py`](examples/aviso-extremes-dt-polytope-download.py) | Download GRIB to disk for every matching step (no plotting).                 |
-| [`desp-authentication.py`](desp-authentication.py)                                       | Obtain a DESP offline token for Polytope (`~/.polytopeapirc`).               |
+| Script | Description |
+| --- | --- |
+| [`aviso-extremes-dt.py`](aviso-extremes-dt.py) | Minimal real-time listener with the `echo` trigger. |
+| [`aviso-extremes-dt-from-time.py`](aviso-extremes-dt-from-time.py) | Replay from a given publish time, then continue listening live. |
+| [`aviso-extremes-dt-earthkit-example.py`](aviso-extremes-dt-earthkit-example.py) | End-to-end workflow: notification → Polytope download → regrid → Europe map plot. |
+| [`examples/aviso-extremes-dt-log.py`](examples/aviso-extremes-dt-log.py) | Persist every notification to a structured JSON-lines log file. |
+| [`examples/aviso-extremes-dt-multi-listener.py`](examples/aviso-extremes-dt-multi-listener.py) | Two listeners in one process with different filters (surface vs. wave). |
+| [`examples/aviso-extremes-dt-replay-window.py`](examples/aviso-extremes-dt-replay-window.py) | Replay a bounded historical window (`from_date` + `to_date`) and exit. |
+| [`examples/aviso-extremes-dt-polytope-download.py`](examples/aviso-extremes-dt-polytope-download.py) | Download GRIB data to disk for every matching step (no plotting). |
+| [`desp-authentication.py`](desp-authentication.py) | Obtain a DESP offline token and store it for Polytope access. |
 
 ---
 
-## 9. Quotas, throttling and best practices
+## 11. Quotas, Throttling, and Best Practices
 
-- **Rate limit:** up to **50 requests/second** to the Aviso server (subject to
-  change under load).
-- **Concurrent operations:** currently unlimited, but be considerate.
-- Use the **narrowest request filter you can** (`stream`, `levtype`, `step`) to avoid waking up your trigger for irrelevant notifications.
-- In a `function` trigger, **do not block** the main thread with multi‑minute
-  work. Hand off to a queue / worker pool (e.g. `concurrent.futures`, Celery,
-  AWS SNS via the `post` trigger).
-- If your trigger downloads from Polytope, be aware that **each** notification
-  may correspond to one forecast step — your download volume scales with how
-  broad your filter is.
-- For production deployments where you do not want catch‑up replay, run with
-  `aviso listen --now` (CLI) to reset state and listen only to new
+- **Rate limit:** up to **50 requests/second** to the Aviso server (may be
+  adjusted under load).
+- **Concurrent operations:** currently unlimited, but please be considerate.
+- Use the **narrowest request filter** possible (`stream`, `levtype`, `step`) to
+  avoid triggering on irrelevant notifications.
+- In a `function` trigger, **do not block the main thread** with lengthy
+  operations. Hand off work to a queue or worker pool (e.g. `concurrent.futures`,
+  Celery, or use the `post` trigger to forward to an external system).
+- Each notification typically corresponds to one forecast step — download volume
+  scales directly with how broad your filter is.
+- For production deployments that should ignore catch-up replay, run
+  `aviso listen --now` (CLI) to reset the local state and listen only to new
   notifications.
 
 ---
 
-## 10. Troubleshooting
+## 12. Troubleshooting
 
-| Symptom                                                          | Likely cause / fix                                                                                  |
-| ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| Script prints `Listening to /de/data/ …` and nothing else        | Filter is correct but no matching data has been produced since you started listening. Try a `from_date` in the past. |
-| `ConnectionError` / TLS errors                                   | Outbound 443 to `aviso.lumi.apps.dte.destination-earth.eu` is blocked by your network.              |
-| Notifications received but Polytope download fails with 401/403  | Refresh the DESP token via `python desp-authentication.py`.                                         |
-| You replay from `from_date` but receive far fewer events than expected | `from_date` filters by **publish time**, not forecast base time — see [§6.1](#61-from_date-is-not-a-forecast-base-time). |
-| Catch‑up replays the same notifications every restart            | The local state file is missing or wiped — check the user config (default under `~/aviso/`).       |
+| Symptom | Likely cause / fix |
+| --- | --- |
+| Script prints `Listening to /de/data/ …` and no notifications arrive | No matching data published since you started, or filter is too narrow. Try a `from_date` in the past. |
+| `ConnectionError` / TLS errors | Outbound port 443 to `aviso.lumi.apps.dte.destination-earth.eu` is blocked by your network. |
+| Polytope download fails with 401 / 403 | Refresh the DESP token by re-running `desp-authentication.py`. |
+| `from_date` replay returns fewer events than expected | `from_date` is a publish time, not a forecast base time — see [§8.1](#81-from_date-is-not-a-forecast-base-time). |
+| Catch-up replays the same notifications on every restart | The local state file is missing or being reset — check the Aviso config directory (default: `~/aviso/`). |
 
 ---
 
-## 11. References
+## 13. References
 
 - pyaviso documentation: <https://pyaviso.readthedocs.io/en/latest/>
-- Aviso source: <https://github.com/ecmwf/aviso>
+- Aviso source code: <https://github.com/ecmwf/aviso>
 - Destination Earth: <https://destination-earth.eu/>
 - DestinE / ECMWF Digital Twin Engine: <https://destine.ecmwf.int/>
+- Extremes DT Data Catalogue: <https://confluence.ecmwf.int/display/DDCZ/Extremes+DT+data+catalogue>
 - Polytope client: <https://github.com/ecmwf/polytope-client>
 - Earthkit: <https://earthkit.readthedocs.io/>
-- CloudEvents spec (used by `post` trigger): <https://cloudevents.io/>
+- CloudEvents specification: <https://cloudevents.io/>
