@@ -69,20 +69,19 @@ apply in the DestinE context.
 
 ## 3. Requirements and Access
 
-To use Aviso for Destination Earth, you need a DestinE Platform account with
-the appropriate access level.
-
-1. Register at the [DestinE Platform](https://platform.destine.eu/).
-2. Apply for upgraded access as described in the
-   [access policy](https://platform.destine.eu/support-pages/access-policy/).
-
 > [!NOTE]
 > Listening to Aviso notifications does **not** require authentication — the
 > current endpoint uses `auth_type: none`. However, downloading data via
 > Polytope (used in the Earthkit example) **does** require valid DESP
 > credentials.
 
-For Polytope access, run [`desp-authentication.py`](desp-authentication.py).
+To obtain DESP credentials:
+
+1. Register at the [DestinE Platform](https://platform.destine.eu/).
+2. Apply for upgraded access as described in the
+   [access policy](https://platform.destine.eu/support-pages/access-policy/).
+
+Once upgraded access is granted, run the [`desp-authentication.py`](desp-authentication.py) script.
 It will prompt for your DestinE username and password, then retrieve a
 long-lived offline token from the Destination Earth Service Platform (DESP)
 and store it at `~/.polytopeapirc`. Re-authentication is only needed when that
@@ -114,8 +113,6 @@ pip install pyaviso
 | ------------------------ | -------------------------------------------------------- |
 | Aviso host               | `aviso.lumi.apps.dte.destination-earth.eu`               |
 | Port                     | `443` (HTTPS)                                            |
-| Notification topic       | `/de/data/`                                              |
-| Authentication           | `none` (current setup)                                   |
 | Polytope host (data)     | `polytope.lumi.apps.dte.destination-earth.eu`            |
 
 Verify connectivity before running the examples:
@@ -351,6 +348,9 @@ to the **Extremes Digital Twin**:
 - `stream: oper` (and `wave` for the wave component)
 - 4 km global resolution; operational production began on **2023-12-11**
 
+Climate DT data is not available through Aviso at this time. Subscribing with
+`dataset: climate-dt` will produce no matches.
+
 Consult the [Extremes DT Data Catalogue](https://confluence.ecmwf.int/display/DDCZ/Extremes+DT+data+catalogue)
 to identify available variables, levels, and forecast steps before constructing
 your request filter.
@@ -384,7 +384,9 @@ your request filter.
   Celery, or use the `post` trigger to forward to an external system).
 - Each notification typically corresponds to one forecast step — download volume
   scales directly with how broad your filter is.
-
+- For production deployments that should ignore catch-up replay, run
+  `aviso listen --now` (CLI) to reset the local state and listen only to new
+  notifications.
 
 ---
 
