@@ -12,8 +12,6 @@ A single `NotificationManager.listen(...)` call handles both. This is the
 recommended pattern when you need to react differently to different kinds of
 Extremes-DT products from the same process.
 
-Run with:
-    python examples/aviso-extremes-dt-multi-listener.py
 """
 
 from pprint import pprint as pp
@@ -54,7 +52,6 @@ def main():
         "event": "data",
         "request": {
             "class": "d1",
-            "dataset": "extremes-dt",
             "expver": "0001",
             "stream": "oper",
             "type": "fc",
@@ -68,7 +65,6 @@ def main():
         "event": "data",
         "request": {
             "class": "d1",
-            "dataset": "extremes-dt",
             "expver": "0001",
             "stream": "wave",
             "type": "fc",

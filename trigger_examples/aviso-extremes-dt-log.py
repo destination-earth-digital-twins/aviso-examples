@@ -5,8 +5,6 @@ file using a Python `function` trigger.
 This is a more durable alternative to the `echo` trigger: each notification is
 appended as one JSON document per line to `aviso-extremes-dt-log-<timestamp>.jsonl`.
 
-Run with:
-    python examples/aviso-extremes-dt-log.py
 """
 
 import json
@@ -15,16 +13,16 @@ from pathlib import Path
 from pprint import pprint as pp
 
 from pyaviso import NotificationManager, user_config
-SCRIPT_NAME = Path(__file__).stem
 
+SCRIPT_NAME = Path(__file__).stem
 RUN_TIMESTAMP = datetime.now(timezone.utc).strftime("%Y-%m-%d_%H-%M")
 LOG_PATH = Path(f"{SCRIPT_NAME}_{RUN_TIMESTAMP}.jsonl")
 
-START_DATE = datetime(2026, 3, 25)  # Start date for the notification listener
-
-# Narrow the subscription to surface forecast products of the Extremes DT.
+# Narrow the subscription to surface forecast products of the Extremes DT
+# for basetime 2026-06-02 and for specific steps. Adjust as needed.
 REQUEST = {
     "class": "d1",
+    "date": "20260602",
     "expver": "0001",
     "stream": "oper",
     "type": "fc",
@@ -69,7 +67,11 @@ def main():
     config = user_config.UserConfig(**CONFIG)
     nm = NotificationManager()
     print(f"Logging Extremes-DT notifications to {LOG_PATH.resolve()}")
-    nm.listen(listeners={"listeners": [listener]}, from_date=START_DATE, config=config)
+    nm.listen(
+        listeners={"listeners": [listener]},
+        from_date=datetime(2026, 6, 2),
+        to_date=datetime(2026, 6, 3), # listen for 1 day after basetime in case forecast products arrive with delay
+        config=config)
 
 
 if __name__ == "__main__":

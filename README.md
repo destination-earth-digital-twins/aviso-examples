@@ -45,7 +45,7 @@ In short, Aviso lets you:
 
 ## 2. Aviso in the Destination Earth Context
 
-Aviso is the mechanism that informs users the moment new DT data becomes
+Aviso is the mechanism that informs users the moment new forecast data becomes
 available, so that downstream workflows — post-processing, visualisation, model
 coupling, alerting — can react immediately.
 
@@ -348,8 +348,7 @@ to the **Extremes Digital Twin**:
 - `stream: oper` (and `wave` for the wave component)
 - 4 km global resolution; operational production began on **2023-12-11**
 
-Climate DT data is not available through Aviso at this time. Subscribing with
-`dataset: climate-dt` will produce no matches.
+Climate DT data is not available through Aviso at this time.
 
 Consult the [Extremes DT Data Catalogue](https://confluence.ecmwf.int/display/DDCZ/Extremes+DT+data+catalogue)
 to identify available variables, levels, and forecast steps before constructing

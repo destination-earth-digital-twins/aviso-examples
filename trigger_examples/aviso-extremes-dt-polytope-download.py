@@ -8,8 +8,6 @@ Requires:
     (written by default to `~/.polytopeapirc`).
   * `earthkit-data` and `polytope-client` installed.
 
-Run with:
-    python examples/aviso-extremes-dt-polytope-download.py
 """
 
 from datetime import datetime
@@ -29,7 +27,6 @@ START_DATE = datetime(2025, 11, 4)
 # 2 metre temperature (param=167) on the surface forecast stream.
 REQUEST = {
     "class": "d1",
-    "dataset": "extremes-dt",
     "expver": "0001",
     "stream": "oper",
     "type": "fc",
@@ -60,7 +57,6 @@ def download(notification):
         "class": "d1",
         "expver": "0001",
         "stream": "oper",
-        "dataset": "extremes-dt",
         "type": "fc",
         "levtype": "sfc",
         "date": req["date"],
@@ -86,7 +82,7 @@ def download(notification):
         address="polytope.lumi.apps.dte.destination-earth.eu",
         stream=False,
     )
-    data.save(str(out_path))
+    data.to_target("file")
     print(f"done: {out_path} ({out_path.stat().st_size / 1024:.1f} KiB)")
 
 
