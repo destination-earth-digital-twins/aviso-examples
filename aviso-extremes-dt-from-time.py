@@ -1,12 +1,33 @@
+"""
+Replay notifications from a past publish time, then continue listening live.
+
+Unlike the real-time listener, this script:
+- Replays notifications from START_DATE onward.
+- Catches up any missed notifications.
+- Then continues listening to new notifications.
+
+This is useful for recovery after outages or to backfill initial setup.
+"""
+
 from datetime import datetime
 from pprint import pprint as pp
 
 from pyaviso import NotificationManager, user_config
 
-# Constants
-START_DATE = datetime(2025, 11, 4)  # Start date for the notification listener
-LISTENER_EVENT = "data"  # Event for the listener, options are mars and dissemination
-TRIGGER_TYPE = "function"  # Type of trigger for the listener
+# ============================================================================
+# CONFIGURATION
+# ============================================================================
+
+# Replay start point: publication time, not forecast base time
+START_DATE = datetime(2025, 11, 4)
+
+# Listener event type (must be "data" for Extremes-DT)
+LISTENER_EVENT = "data"
+
+# Trigger type: "echo" prints to stdout, "function" calls a Python function
+TRIGGER_TYPE = "function"
+
+# Request filter: only notifications matching ALL keys are delivered
 AVISO_REQUEST = {
     "class": "d1",
     "expver": "0001",
@@ -14,7 +35,9 @@ AVISO_REQUEST = {
     "step": [0, 3, 6, 9, 12, 15, 18, 21, 24],
     "levtype": "sfc",
     "type": "fc",
-}  # Request configuration for the listener
+}
+
+# Aviso server and notification engine configuration
 CONFIG = {
     "notification_engine": {
         "host": "aviso.lumi.apps.dte.destination-earth.eu",
@@ -29,41 +52,55 @@ CONFIG = {
     "schema_parser": "generic",
     "remote_schema": True,
     "auth_type": "none",
-}  # manually defined configuration
+}
+
+# ============================================================================
+# TRIGGER FUNCTIONS
+# ============================================================================
 
 
 def do_something(notification):
-    """
-    Function for the listener to trigger.
-    """
+    """Print the received notification."""
     pp(notification)
 
 
-def create_listener():
-    """
-    Creates and returns a listener configuration.
-    """
+# ============================================================================
+# LISTENER SETUP
+# ============================================================================
 
+
+def create_listener():
+    """Construct a listener configuration for Extremes-DT notifications."""
     trigger = {
         "type": TRIGGER_TYPE,
         "function": do_something,
-    }  # Define the trigger for the listener
-    # Return the complete listener configuration
-    return {"event": LISTENER_EVENT, "request": AVISO_REQUEST, "triggers": [trigger]}
+    }
+    return {
+        "event": LISTENER_EVENT,
+        "request": AVISO_REQUEST,
+        "triggers": [trigger],
+    }
+
+
+# ============================================================================
+# MAIN
+# ============================================================================
 
 
 def main():
+    """Replay from START_DATE, then continue listening for new notifications."""
     try:
-        listener = create_listener()  # Create listener configuration
-        listeners_config = {"listeners": [listener]}  # Define listeners configuration
+        listener = create_listener()
+        listeners_config = {"listeners": [listener]}
         config = user_config.UserConfig(**CONFIG)
-        print("loaded config:")
+        print("Loaded Aviso configuration:")
         pp(CONFIG)
-        nm = NotificationManager()  # Initialize the NotificationManager
-
-        nm.listen(
-            listeners=listeners_config, from_date=START_DATE, config=config
-        )  # Start listening
+        nm = NotificationManager()
+        print(f"Replaying notifications from {START_DATE.isoformat()} UTC ...")
+        print("Stop with Ctrl+C.\n")
+        nm.listen(listeners=listeners_config, from_date=START_DATE, config=config)
+    except KeyboardInterrupt:
+        print("\nListener stopped.")
     except Exception as e:
         print(f"Failed to initialize the Notification Manager: {e}")
 

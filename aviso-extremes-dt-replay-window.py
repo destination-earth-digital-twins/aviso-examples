@@ -20,16 +20,26 @@ the window generously around the production wall-clock.
 
 """
 
-from datetime import datetime
-from pprint import pprint as pp
 from datetime import datetime, timedelta
+from pprint import pprint as pp
 
 from pyaviso import NotificationManager, user_config
+
+# ============================================================================
+# CONFIGURATION
+# ============================================================================
 
 # Publication-time window (UTC). Choose a window strictly in the past.
 TO_DATE = datetime.now()
 FROM_DATE = TO_DATE - timedelta(days=14)
 
+# Listener event type (must be "data" for Extremes-DT)
+LISTENER_EVENT = "data"
+
+# Trigger type: "echo" prints to stdout, "function" calls a Python function
+TRIGGER_TYPE = "function"
+
+# Request filter: only notifications matching ALL keys are delivered
 AVISO_REQUEST = {
     "class": "d1",
     "expver": "0001",
@@ -41,6 +51,7 @@ AVISO_REQUEST = {
     # "time": "0000",
 }
 
+# Aviso server and notification engine configuration
 CONFIG = {
     "notification_engine": {
         "host": "aviso.lumi.apps.dte.destination-earth.eu",
@@ -57,8 +68,13 @@ CONFIG = {
     "auth_type": "none",
 }
 
+# ============================================================================
+# TRIGGER FUNCTIONS
+# ============================================================================
+
 
 def count_and_print(notification, _counter=[0]):
+    """Count and display each notification."""
     _counter[0] += 1
     req = notification.get("request", {})
     print(
@@ -67,25 +83,50 @@ def count_and_print(notification, _counter=[0]):
     )
 
 
-def main():
-    listener = {
-        "event": "data",
-        "request": AVISO_REQUEST,
-        "triggers": [{"type": "function", "function": count_and_print}],
+# ============================================================================
+# LISTENER SETUP
+# ============================================================================
+
+
+def create_listener():
+    """Construct a listener configuration for Extremes-DT notifications."""
+    trigger = {
+        "type": TRIGGER_TYPE,
+        "function": count_and_print,
     }
-    config = user_config.UserConfig(**CONFIG)
-    nm = NotificationManager()
-    print("Replaying notifications published between "
-          f"{FROM_DATE.isoformat()} and {TO_DATE.isoformat()} UTC")
-    print("filter:")
-    pp(AVISO_REQUEST)
-    nm.listen(
-        listeners={"listeners": [listener]},
-        from_date=FROM_DATE,
-        to_date=TO_DATE,
-        config=config,
-    )
-    print("Replay complete.")
+    return {
+        "event": LISTENER_EVENT,
+        "request": AVISO_REQUEST,
+        "triggers": [trigger],
+    }
+
+
+# ============================================================================
+# MAIN
+# ============================================================================
+
+
+def main():
+    """Replay bounded historical window and exit."""
+    try:
+        listener = create_listener()
+        listeners_config = {"listeners": [listener]}
+        config = user_config.UserConfig(**CONFIG)
+        print("Replaying notifications published between:")
+        print(f"  From: {FROM_DATE.isoformat()} UTC")
+        print(f"  To:   {TO_DATE.isoformat()} UTC")
+        print("Filter:")
+        pp(AVISO_REQUEST)
+        nm = NotificationManager()
+        nm.listen(
+            listeners=listeners_config,
+            from_date=FROM_DATE,
+            to_date=TO_DATE,
+            config=config,
+        )
+        print("\nReplay complete.")
+    except Exception as e:
+        print(f"Failed to initialize the Notification Manager: {e}")
 
 
 if __name__ == "__main__":

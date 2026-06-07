@@ -13,21 +13,31 @@ Requires:
   * `earthkit-data` and `polytope-client` installed.
 
 """
+from datetime import datetime, timedelta
 from pathlib import Path
 from pprint import pprint as pp
-from datetime import datetime, timedelta
 
 import earthkit.data
 from pyaviso import NotificationManager, user_config
 
+# ============================================================================
+# CONFIGURATION
+# ============================================================================
 
-# Where to write GRIB files. Created on demand.
+# Output directory for downloaded GRIB files
 OUT_DIR = Path("downloads/")
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-# Replay/start position. Publication time, NOT forecast base time.
+# Replay/start position: publication time, NOT forecast base time
 START_DATE = datetime.now() - timedelta(days=2)
 
+# Listener event type (must be "data" for Extremes-DT)
+LISTENER_EVENT = "data"
+
+# Trigger type: "echo" prints to stdout, "function" calls a Python function
+TRIGGER_TYPE = "function"
+
+# Request filter: only notifications matching ALL keys are delivered
 AVISO_REQUEST = {
     "class": "d1",
     "expver": "0001",
@@ -37,6 +47,7 @@ AVISO_REQUEST = {
     "step": [0, 6, 12],
 }
 
+# Aviso server and notification engine configuration
 CONFIG = {
     "notification_engine": {
         "host": "aviso.lumi.apps.dte.destination-earth.eu",
@@ -53,11 +64,17 @@ CONFIG = {
     "auth_type": "none",
 }
 
+# ============================================================================
+# TRIGGER FUNCTIONS
+# ============================================================================
+
 
 def download(notification):
+    """Download and save GRIB data for the notified forecast step."""
     req = notification.get("request", {})
 
-    LOCATION = ((38, -9.5))
+    # Example location: Lisbon, Portugal
+    LOCATION = (38, -9.5)
 
     polytope_request = {
         "dataset": "extremes-dt",
@@ -69,12 +86,12 @@ def download(notification):
         "date": req["date"],
         "time": req["time"],
         "step": req["step"],
-        "param": "167",  # Download only 2m temperature
+        "param": "167",  # 2m temperature
         "feature": {
-            "type" : "timeseries",
+            "type": "timeseries",
             "points": [[LOCATION[0], LOCATION[1]]],
             "time_axis": "date",
-        }
+        },
     }
 
     out_path = OUT_DIR / (
@@ -84,7 +101,7 @@ def download(notification):
         print(f"skip (exists): {out_path.name}")
         return
 
-    print(f"downloading -> {out_path}")
+    print(f"Downloading -> {out_path}")
     pp(polytope_request)
 
     data = earthkit.data.from_source(
@@ -95,23 +112,52 @@ def download(notification):
         stream=False,
     )
     data.to_target("file", out_path)
-    print(f"done: {out_path} ({out_path.stat().st_size / 1024:.1f} KiB)")
+    print(f"Done: {out_path} ({out_path.stat().st_size / 1024:.1f} KiB)")
+
+
+# ============================================================================
+# LISTENER SETUP
+# ============================================================================
+
+
+def create_listener():
+    """Construct a listener configuration for Extremes-DT notifications."""
+    trigger = {
+        "type": TRIGGER_TYPE,
+        "function": download,
+    }
+    return {
+        "event": LISTENER_EVENT,
+        "request": AVISO_REQUEST,
+        "triggers": [trigger],
+    }
+
+
+# ============================================================================
+# MAIN
+# ============================================================================
 
 
 def main():
-    listener = {
-        "event": "data",
-        "request": AVISO_REQUEST,
-        "triggers": [{"type": "function", "function": download}],
-    }
-    config = user_config.UserConfig(**CONFIG)
-    nm = NotificationManager()
-    print(f"Writing GRIB downloads to {OUT_DIR.resolve()}")
-    nm.listen(
-        listeners={"listeners": [listener]},
-        from_date=START_DATE,
-        config=config,
-    )
+    """Start listening and download data for each notification."""
+    try:
+        listener = create_listener()
+        listeners_config = {"listeners": [listener]}
+        config = user_config.UserConfig(**CONFIG)
+        print(f"Downloading Extremes-DT notifications to {OUT_DIR.resolve()}")
+        print(f"Replaying from {START_DATE.isoformat()} UTC")
+        print(f"Stop with Ctrl+C.\n")
+        nm = NotificationManager()
+        nm.listen(
+            listeners=listeners_config,
+            from_date=START_DATE,
+            config=config,
+        )
+    except KeyboardInterrupt:
+        print(f"\nListener stopped. Downloads saved to {OUT_DIR.resolve()}")
+    except Exception as e:
+        print(f"Failed to initialize the Notification Manager: {e}")
+
 
 
 if __name__ == "__main__":
