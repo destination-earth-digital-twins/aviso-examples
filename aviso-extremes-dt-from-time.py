@@ -9,7 +9,7 @@ Unlike the real-time listener, this script:
 This is useful for recovery after outages or to backfill initial setup.
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from pprint import pprint as pp
 
 from pyaviso import NotificationManager, user_config

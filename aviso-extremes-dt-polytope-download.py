@@ -29,7 +29,7 @@ OUT_DIR = Path("downloads/")
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # Replay/start position: publication time, NOT forecast base time
-START_DATE = datetime.now() - timedelta(days=2)
+START_DATE = datetime.now() - timedelta(days=13)
 
 # Listener event type (must be "data" for Extremes-DT)
 LISTENER_EVENT = "data"

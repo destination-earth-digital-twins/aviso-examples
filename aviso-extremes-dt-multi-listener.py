@@ -9,6 +9,7 @@ Both listeners run concurrently. This is the recommended pattern for reacting
 differently to different types of Extremes-DT products.
 """
 
+from datetime import datetime
 from pprint import pprint as pp
 
 from pyaviso import NotificationManager, user_config
@@ -108,7 +109,7 @@ def main():
         nm = NotificationManager()
         print(f"Listening for {LISTENER_EVENT} notifications on /de/data/ ...")
         print("Stop with Ctrl+C.\n")
-        nm.listen(listeners=listeners_config, config=config)
+        nm.listen(listeners=listeners_config, config=config, from_date=START_DATE)
     except KeyboardInterrupt:
         print("\nListener stopped.")
     except Exception as e:

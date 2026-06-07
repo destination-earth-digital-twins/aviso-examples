@@ -18,6 +18,9 @@ from pyaviso import NotificationManager, user_config
 # CONFIGURATION
 # ============================================================================
 
+# Replay start point: publication time, not forecast base time
+START_DATE = datetime(2025, 11, 4)
+
 # Output file with timestamp to avoid overwrites
 SCRIPT_NAME = Path(__file__).stem
 RUN_TIMESTAMP = datetime.now(timezone.utc).strftime("%Y-%m-%d_%H-%M")
@@ -29,10 +32,9 @@ LISTENER_EVENT = "data"
 # Trigger type: "echo" prints to stdout, "function" calls a Python function
 TRIGGER_TYPE = "function"
 
-# Request filter: narrow to surface forecast products of Extremes DT
+# Request filter: narrow to surface forecast products of Extremes DT for a specific date
 AVISO_REQUEST = {
     "class": "d1",
-    "date": "20260602",
     "expver": "0001",
     "stream": "oper",
     "type": "fc",
@@ -105,7 +107,7 @@ def main():
         print(f"Logging Extremes-DT notifications to {LOG_PATH.resolve()}")
         print(f"Stop with Ctrl+C.\n")
         nm = NotificationManager()
-        nm.listen(listeners=listeners_config, config=config)
+        nm.listen(listeners=listeners_config, config=config, from_date=START_DATE)
     except KeyboardInterrupt:
         print(f"\nLogging stopped. Output saved to {LOG_PATH.resolve()}")
     except Exception as e:

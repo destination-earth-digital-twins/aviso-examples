@@ -19,7 +19,7 @@ Digital Twin** data, with a focus on the **Extremes Digital Twin (Extremes-DT)**
   - [7.4 Triggers](#74-triggers)
   - [7.5 Notification Payload](#75-notification-payload)
 - [8. Catch-up and Historical Replay](#8-catch-up-and-historical-replay)
-  - [8.1 `from_date` and `to_date` on listerner do NOT refer to a Forecast Base Time](#81-from_date-and-to_date-on-listerner-do-not-refer-to-a-forecast-base-time)
+  - [8.1 `from_date` and `to_date` are Publication Times, Not Forecast Base Times](#81-from_date-and-to_date-are-publication-times-not-forecast-base-times)
 - [9. Scope: Extremes Digital Twin Only](#9-scope-extremes-digital-twin-only)
 - [10. Examples in this Repository](#10-examples-in-this-repository)
 - [11. Quotas, Throttling, and Best Practices](#11-quotas-throttling-and-best-practices)
@@ -211,9 +211,12 @@ ECMWF operational contexts — these are **not** relevant for DT data.
 
 ### 7.3 Request Keys (MARS-like)
 
-The `request` dictionary uses keys from the MARS language. A notification is
+The `aviso request` dictionary uses keys from the MARS language. A notification is
 delivered only when **every** specified key matches. The fewer keys you include,
 the broader the subscription.
+
+Do not confuse the aviso request dictionary with a polytope request dictionary.
+Although they are similar, the aviso request dictionary only accepts the following keys:
 
 | Key       | Typical value             | Meaning                                         |
 | --------- | ------------------------- | ----------------------------------------------- |
@@ -228,6 +231,13 @@ the broader the subscription.
 
 Each value can be a scalar or a list — for example,
 `"step": [0, 3, 6, 9, 12, 15, 18, 21, 24]` matches any of those steps.
+
+> [!NOTE]
+> Polytope request dictionaries accept additional keys (e.g., `"param"`, `"feature"`)
+> and follow different validation rules since they are processed by separate software.
+> Refer to the [Polytope documentation](https://platform.destine.eu/docs/climate-dt-user-guide/doc/data/polytope.html)
+> and [polytope-examples](https://github.com/destination-earth-digital-twins/polytope-examples)
+> repository for details on building valid polytope requests.
 
 ### 7.4 Triggers
 
@@ -313,37 +323,32 @@ nm.listen(
 An optional `to_date` bounds the replay window; when set, Aviso exits after
 processing the historical range instead of continuing into real-time.
 > [!IMPORTANT]
-> If using to_date, it must always be set to a date before current date.
+> If using `to_date`, it should be set to a date in the past (not the current moment).
+> Aviso will exit once all notifications up to that time have been processed.
 
-### 8.1 `from_date` and `to_date` on listerner do NOT refer to a Forecast Base Time
+### 8.1 `from_date` and `to_date` are Publication Times, Not Forecast Base Times
 
 > [!WARNING]
-> `from_date` is the **wall-clock time at which the notification was published**
-> on the Aviso server — i.e. when the data producer announced that a product was
-> available. It is **not** the forecast base time (`date` + `time` in the
-> request).
+> `from_date` and `to_date` refer to the **wall-clock time when the notification was
+> published** on the Aviso server—i.e., when the data producer announced that a product
+> was available. They are **not** the forecast base time (`date` + `time` in the request).
 >
-> Extreme-DT data is typically produced daily, with model runs completeting at around
-> 8:00 UTC and the transfer of the data into the Data Bridges completing around 10:50
-> UTC. However, issues on Lumi and increased queieing times can lead data to
-> be produced several hours ou even days **after** this schedule.
+> **Example scenario:**
+> Data for the forecast initialized at `2025-11-04 00 UTC` typically becomes available
+> around 8:00–11:00 UTC that same day. However, due to queuing delays or system issues,
+> the corresponding notifications may be published several hours or even days later.
 >
-> A notification for the forecast initialised at `2025-11-04 00 UTC` can be
-> published several hours ou even days **after** `2025-11-04 00 UTC`, in case
-> there are issues on LUMI or increased queing times.
+> **Correct approach:**
+> - To replay all notifications for the `2025-11-04 00 UTC` cycle, set `from_date` to a
+>   time *before* the cycle started (e.g., `datetime(2025, 11, 3, 12)`) and in the **Polytope request dictionary** filter to target the specific cycle: `"date": "20251104", "time": "0000"`.
+> - If you set `from_date=datetime(2025, 11, 4, 12)`, you will only capture notifications
+>   *published* from noon UTC onward, which may miss early steps and include products
+>   from prior forecast cycles.
+> - When in doubt, set `from_date` conservatively early and rely on the `request` filter
+>   to select the correct forecasts.
 >
-> - To replay all notifications for the `2025-11-04 00 UTC` cycle, set
->   `from_date` to a time **before** the cycle started (e.g.
->   `datetime(2025, 11, 3)`) and narrow the selection using
->   `"date": "20251104", "time": "0000"` in `request`.
-> - Setting `from_date=datetime(2025, 11, 4)` captures only notifications
->   **published** from that moment onward, which may miss early steps and
->   **include products from prior forecast cycles.**
->
-> When in doubt, set `from_date` conservatively early and let the `request`
-> filter do the selection.
->
-> The same is valid for `to_date`
+> The same principle applies to `to_date`: it bounds the publication-time window, not
+> the forecast base time window.
 
 ---
 
@@ -413,9 +418,10 @@ your request filter.
 
 - pyaviso documentation: <https://pyaviso.readthedocs.io/en/latest/>
 - Aviso source code: <https://github.com/ecmwf/aviso>
+- Destination Earth user guide: https://platform.destine.eu/services/documents-and-api/doc/?service_name=climate-dt-user-guide
+- Polytope examples repository: https://github.com/destination-earth-digital-twins/polytope-examples
 - Destination Earth: <https://destination-earth.eu/>
 - DestinE / ECMWF Digital Twin Engine: <https://destine.ecmwf.int/>
 - Extremes DT Data Catalogue: <https://confluence.ecmwf.int/display/DDCZ/Extremes+DT+data+catalogue>
-- Polytope client: <https://github.com/ecmwf/polytope-client>
 - Earthkit: <https://earthkit.readthedocs.io/>
 - CloudEvents specification: <https://cloudevents.io/>
