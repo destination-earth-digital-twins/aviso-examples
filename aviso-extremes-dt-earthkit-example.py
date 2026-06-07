@@ -10,7 +10,7 @@ from pyaviso import NotificationManager, user_config
 START_DATE = datetime(2025, 11, 4)  # Start date for the notification listener
 LISTENER_EVENT = "data"  # Event for the listener, options are mars and dissemination
 TRIGGER_TYPE = "function"  # Type of trigger for the listener
-REQUEST = {
+AVISO_REQUEST = {
     "class": "d1",
     "expver": "0001",
     "stream": "oper",
@@ -76,14 +76,14 @@ def do_something(notification):
 
     data.ls()
 
-    data.to_xarray(engine="cfgrib")
+    data.to_xarray()
 
     # regrid to 1x1 degree
     out_grid = {"grid": [0.1, 0.1]}
     data_interpolated = earthkit.regrid.interpolate(
         data, out_grid=out_grid, method="linear"
     )
-    data_interpolated.to_xarray(engine="cfgrib")
+    data_interpolated.to_xarray()
 
     chart = earthkit.plots.Map(domain="Europe")
     chart.quickplot(data_interpolated[0])
@@ -104,7 +104,7 @@ def create_listener():
         "function": do_something,
     }  # Define the trigger for the listener
     # Return the complete listener configuration
-    return {"event": LISTENER_EVENT, "request": REQUEST, "triggers": [trigger]}
+    return {"event": LISTENER_EVENT, "request": AVISO_REQUEST, "triggers": [trigger]}
 
 
 def main():

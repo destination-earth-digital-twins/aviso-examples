@@ -18,22 +18,20 @@ available). They are NOT the forecast base time. To target forecasts
 initialised at a specific cycle, use `date`/`time` inside the request and set
 the window generously around the production wall-clock.
 
-Run with:
-    python examples/aviso-extremes-dt-replay-window.py
 """
 
 from datetime import datetime
 from pprint import pprint as pp
+from datetime import datetime, timedelta
 
 from pyaviso import NotificationManager, user_config
 
 # Publication-time window (UTC). Choose a window strictly in the past.
-FROM_DATE = datetime(2025, 11, 3)
-TO_DATE = datetime(2025, 11, 5)
+TO_DATE = datetime.now()
+FROM_DATE = TO_DATE - timedelta(days=14)
 
-REQUEST = {
+AVISO_REQUEST = {
     "class": "d1",
-    "dataset": "extremes-dt",
     "expver": "0001",
     "stream": "oper",
     "type": "fc",
@@ -72,7 +70,7 @@ def count_and_print(notification, _counter=[0]):
 def main():
     listener = {
         "event": "data",
-        "request": REQUEST,
+        "request": AVISO_REQUEST,
         "triggers": [{"type": "function", "function": count_and_print}],
     }
     config = user_config.UserConfig(**CONFIG)
@@ -80,7 +78,7 @@ def main():
     print("Replaying notifications published between "
           f"{FROM_DATE.isoformat()} and {TO_DATE.isoformat()} UTC")
     print("filter:")
-    pp(REQUEST)
+    pp(AVISO_REQUEST)
     nm.listen(
         listeners={"listeners": [listener]},
         from_date=FROM_DATE,

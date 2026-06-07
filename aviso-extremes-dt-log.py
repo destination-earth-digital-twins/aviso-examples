@@ -20,7 +20,7 @@ LOG_PATH = Path(f"{SCRIPT_NAME}_{RUN_TIMESTAMP}.jsonl")
 
 # Narrow the subscription to surface forecast products of the Extremes DT
 # for basetime 2026-06-02 and for specific steps. Adjust as needed.
-REQUEST = {
+AVISO_REQUEST = {
     "class": "d1",
     "date": "20260602",
     "expver": "0001",
@@ -61,7 +61,7 @@ def append_to_log(notification):
 def main():
     listener = {
         "event": "data",
-        "request": REQUEST,
+        "request": AVISO_REQUEST,
         "triggers": [{"type": "function", "function": append_to_log}],
     }
     config = user_config.UserConfig(**CONFIG)

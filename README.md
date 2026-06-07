@@ -19,7 +19,7 @@ Digital Twin** data, with a focus on the **Extremes Digital Twin (Extremes-DT)**
   - [7.4 Triggers](#74-triggers)
   - [7.5 Notification Payload](#75-notification-payload)
 - [8. Catch-up and Historical Replay](#8-catch-up-and-historical-replay)
-  - [8.1 `from_date` Is Not a Forecast Base Time](#81-from_date-is-not-a-forecast-base-time)
+  - [8.1 `from_date` and `to_date` on listerner do NOT refer to a Forecast Base Time](#81-from_date-and-to_date-on-listerner-do-not-refer-to-a-forecast-base-time)
 - [9. Scope: Extremes Digital Twin Only](#9-scope-extremes-digital-twin-only)
 - [10. Examples in this Repository](#10-examples-in-this-repository)
 - [11. Quotas, Throttling, and Best Practices](#11-quotas-throttling-and-best-practices)
@@ -279,9 +279,7 @@ as JSON) looks like this:
         "date":    "20251104",
         "time":    "0000",
         "step":    "6",
-        # additional keys may be present depending on the producer
     },
-    # "location" and "payload" fields may also appear
 }
 ```
 
@@ -306,15 +304,18 @@ To explicitly set a starting point, use `from_date`:
 ```python
 nm.listen(
     listeners=listeners_config,
-    from_date=datetime(2025, 11, 4),
+    from_date=datetime(2025, 11, 4), #optional
+    to_date=datetime(2025, 11, 30), #optional
     config=config,
 )
 ```
 
 An optional `to_date` bounds the replay window; when set, Aviso exits after
 processing the historical range instead of continuing into real-time.
+> [!IMPORTANT]
+> If using to_date, it must always be set to a date before current date.
 
-### 8.1 `from_date` Is Not a Forecast Base Time
+### 8.1 `from_date` and `to_date` on listerner do NOT refer to a Forecast Base Time
 
 > [!WARNING]
 > `from_date` is the **wall-clock time at which the notification was published**
@@ -322,9 +323,14 @@ processing the historical range instead of continuing into real-time.
 > available. It is **not** the forecast base time (`date` + `time` in the
 > request).
 >
-> A notification for the forecast initialised at `2025-11-04 00 UTC` step 120 is
-> published several hours **after** `2025-11-04 00 UTC`, once that step has been
-> produced. Therefore:
+> Extreme-DT data is typically produced daily, with model runs completeting at around
+> 8:00 UTC and the transfer of the data into the Data Bridges completing around 10:50
+> UTC. However, issues on Lumi and increased queieing times can lead data to
+> be produced several hours ou even days **after** this schedule.
+>
+> A notification for the forecast initialised at `2025-11-04 00 UTC` can be
+> published several hours ou even days **after** `2025-11-04 00 UTC`, in case
+> there are issues on LUMI or increased queing times.
 >
 > - To replay all notifications for the `2025-11-04 00 UTC` cycle, set
 >   `from_date` to a time **before** the cycle started (e.g.
@@ -332,10 +338,12 @@ processing the historical range instead of continuing into real-time.
 >   `"date": "20251104", "time": "0000"` in `request`.
 > - Setting `from_date=datetime(2025, 11, 4)` captures only notifications
 >   **published** from that moment onward, which may miss early steps and
->   include products from prior forecast cycles.
+>   **include products from prior forecast cycles.**
 >
 > When in doubt, set `from_date` conservatively early and let the `request`
 > filter do the selection.
+>
+> The same is valid for `to_date`
 
 ---
 
@@ -363,10 +371,10 @@ your request filter.
 | [`aviso-extremes-dt.py`](aviso-extremes-dt.py) | Minimal real-time listener with the `echo` trigger. |
 | [`aviso-extremes-dt-from-time.py`](aviso-extremes-dt-from-time.py) | Replay from a given publish time, then continue listening live. |
 | [`aviso-extremes-dt-earthkit-example.py`](aviso-extremes-dt-earthkit-example.py) | End-to-end workflow: notification → Polytope download → regrid → Europe map plot. |
-| [`examples/aviso-extremes-dt-log.py`](examples/aviso-extremes-dt-log.py) | Persist every notification to a structured JSON-lines log file. |
-| [`examples/aviso-extremes-dt-multi-listener.py`](examples/aviso-extremes-dt-multi-listener.py) | Two listeners in one process with different filters (surface vs. wave). |
-| [`examples/aviso-extremes-dt-replay-window.py`](examples/aviso-extremes-dt-replay-window.py) | Replay a bounded historical window (`from_date` + `to_date`) and exit. |
-| [`examples/aviso-extremes-dt-polytope-download.py`](examples/aviso-extremes-dt-polytope-download.py) | Download GRIB data to disk for every matching step (no plotting). |
+| [`aviso-extremes-dt-log.py`](aviso-extremes-dt-log.py) | Persist every notification to a structured JSON-lines log file. |
+| [`aviso-extremes-dt-multi-listener.py`](aviso-extremes-dt-multi-listener.py) | Two listeners in one process with different filters (surface vs. wave). |
+| [`aviso-extremes-dt-replay-window.py`](aviso-extremes-dt-replay-window.py) | Replay a bounded historical window (`from_date` + `to_date`) and exit. |
+| [`aviso-extremes-dt-polytope-download.py`](aviso-extremes-dt-polytope-download.py) | Download GRIB data to disk for every matching step (no plotting). |
 | [`desp-authentication.py`](desp-authentication.py) | Obtain a DESP offline token and store it for Polytope access. |
 
 ---

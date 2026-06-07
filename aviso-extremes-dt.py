@@ -5,7 +5,7 @@ from pyaviso import NotificationManager, user_config
 # Constants
 LISTENER_EVENT = "data"  # Event for the listener, options are mars and dissemination
 TRIGGER_TYPE = "echo"  # Type of trigger for the listener
-REQUEST = {
+AVISO_REQUEST = {
     "class": "d1",
     "expver": "0001",
     "stream": "wave",
@@ -37,7 +37,7 @@ def create_listener():
 
     trigger = {"type": TRIGGER_TYPE}  # Define the trigger for the listener
     # Return the complete listener configuration
-    return {"event": LISTENER_EVENT, "request": REQUEST, "triggers": [trigger]}
+    return {"event": LISTENER_EVENT, "request": AVISO_REQUEST, "triggers": [trigger]}
 
 
 def main():
