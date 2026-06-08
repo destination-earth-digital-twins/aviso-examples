@@ -7,3 +7,4 @@ earthkit-plots
 earthkit-regrid 
 cf-units
 polytope-client
+matplotlib

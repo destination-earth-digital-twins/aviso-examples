@@ -13,6 +13,9 @@ Requires earthkit-data, earthkit-plots, earthkit-regrid and polytope-client.
 from datetime import datetime, timedelta
 from pprint import pprint as pp
 
+import matplotlib
+matplotlib.use('agg')
+
 import earthkit.data
 import earthkit.plots
 import earthkit.regrid
