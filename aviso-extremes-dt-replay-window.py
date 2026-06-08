@@ -1,12 +1,23 @@
 """
-Replay notifications from a past publish time, then continue listening live.
+Replay Extremes-DT notifications inside a bounded historical window and exit.
 
-Unlike the real-time listener, this script:
-- Replays notifications from START_DATE onward.
-- Catches up any missed notifications.
-- Then continues listening to new notifications.
+Unlike `aviso-extremes-dt-from-time.py`, which catches up from a given moment
+and then keeps listening, this example uses both `from_date` and `to_date`.
+When `to_date` is provided, Aviso terminates after replaying all the
+notifications published in that interval.
 
-This is useful for recovery after outages or to backfill initial setup.
+This is the right pattern when you want to:
+
+  * Rebuild a local index of past notifications,
+  * Test a trigger function deterministically against real notifications,
+  * Backfill a downstream system without subscribing to the live stream.
+
+IMPORTANT: `from_date`/`to_date` refer to the time the notification was
+PUBLISHED on the Aviso server (i.e. when the producer announced the data was
+available). They are NOT the forecast base time. To target forecasts
+initialised at a specific cycle, use `date`/`time` inside the request and set
+the window generously around the production wall-clock.
+
 """
 
 from datetime import datetime, timedelta
@@ -18,8 +29,9 @@ from pyaviso import NotificationManager, user_config
 # CONFIGURATION
 # ============================================================================
 
-# Replay start point: publication time, not forecast base time
-START_DATE = datetime(2025, 11, 4)
+# Publication-time window (UTC). Choose a window strictly in the past.
+TO_DATE = datetime.now()
+FROM_DATE = TO_DATE - timedelta(days=14)
 
 # Listener event type (must be "data" for Extremes-DT)
 LISTENER_EVENT = "data"
@@ -32,9 +44,11 @@ AVISO_REQUEST = {
     "class": "d1",
     "expver": "0001",
     "stream": "oper",
-    "step": [0, 3, 6, 9, 12, 15, 18, 21, 24],
-    "levtype": "sfc",
     "type": "fc",
+    "levtype": "sfc",
+    # Optionally narrow to a specific forecast cycle:
+    # "date": "20251104",
+    # "time": "0000",
 }
 
 # Aviso server and notification engine configuration
@@ -59,9 +73,14 @@ CONFIG = {
 # ============================================================================
 
 
-def do_something(notification):
-    """Print the received notification."""
-    pp(notification)
+def count_and_print(notification, _counter=[0]):
+    """Count and display each notification."""
+    _counter[0] += 1
+    req = notification.get("request", {})
+    print(
+        f"[{_counter[0]:04d}] base={req.get('date')} {req.get('time')}Z "
+        f"step={req.get('step')} stream={req.get('stream')}"
+    )
 
 
 # ============================================================================
@@ -73,7 +92,7 @@ def create_listener():
     """Construct a listener configuration for Extremes-DT notifications."""
     trigger = {
         "type": TRIGGER_TYPE,
-        "function": do_something,
+        "function": count_and_print,
     }
     return {
         "event": LISTENER_EVENT,
@@ -88,19 +107,24 @@ def create_listener():
 
 
 def main():
-    """Replay from START_DATE, then continue listening for new notifications."""
+    """Replay bounded historical window and exit."""
     try:
         listener = create_listener()
         listeners_config = {"listeners": [listener]}
         config = user_config.UserConfig(**CONFIG)
-        print("Loaded Aviso configuration:")
-        pp(CONFIG)
+        print("Replaying notifications published between:")
+        print(f"  From: {FROM_DATE.isoformat()} UTC")
+        print(f"  To:   {TO_DATE.isoformat()} UTC")
+        print("Filter:")
+        pp(AVISO_REQUEST)
         nm = NotificationManager()
-        print(f"Replaying notifications from {START_DATE.isoformat()} UTC ...")
-        print("Stop with Ctrl+C.\n")
-        nm.listen(listeners=listeners_config, from_date=START_DATE, config=config)
-    except KeyboardInterrupt:
-        print("\nListener stopped.")
+        nm.listen(
+            listeners=listeners_config,
+            from_date=FROM_DATE,
+            to_date=TO_DATE,
+            config=config,
+        )
+        print("\nReplay complete.")
     except Exception as e:
         print(f"Failed to initialize the Notification Manager: {e}")
 

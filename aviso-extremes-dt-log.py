@@ -1,12 +1,15 @@
 """
-Minimal real-time listener for Extremes-DT data-availability notifications.
+Persist every Extremes-DT data-availability notification to a JSON-lines log
+file using a Python `function` trigger.
 
-This script demonstrates the simplest listening pattern:
-- Define a request filter for Extremes-DT products.
-- Use the `echo` trigger to print notifications to stdout.
-- Continue listening until interrupted (Ctrl+C).
+This is a more durable alternative to the `echo` trigger: each notification is
+appended as one JSON document per line to `aviso-extremes-dt-log-<timestamp>.jsonl`.
+
 """
 
+import json
+from datetime import datetime, timezone
+from pathlib import Path
 from pprint import pprint as pp
 
 from pyaviso import NotificationManager, user_config
@@ -15,20 +18,28 @@ from pyaviso import NotificationManager, user_config
 # CONFIGURATION
 # ============================================================================
 
+# Replay start point: publication time, not forecast base time
+START_DATE = datetime(2025, 11, 4)
+
+# Output file with timestamp to avoid overwrites
+SCRIPT_NAME = Path(__file__).stem
+RUN_TIMESTAMP = datetime.now(timezone.utc).strftime("%Y-%m-%d_%H-%M")
+LOG_PATH = Path(f"{SCRIPT_NAME}_{RUN_TIMESTAMP}.jsonl")
+
 # Listener event type (must be "data" for Extremes-DT)
 LISTENER_EVENT = "data"
 
 # Trigger type: "echo" prints to stdout, "function" calls a Python function
-TRIGGER_TYPE = "echo"
+TRIGGER_TYPE = "function"
 
-# Request filter: only notifications matching ALL keys are delivered
+# Request filter: narrow to surface forecast products of Extremes DT for a specific date
 AVISO_REQUEST = {
     "class": "d1",
     "expver": "0001",
-    "stream": "wave",
-    "step": [1, 2, 3],
-    "levtype": "sfc",
+    "stream": "oper",
     "type": "fc",
+    "levtype": "sfc",
+    "step": [0, 3, 6, 9, 12, 15, 18, 21, 24],
 }
 
 # Aviso server and notification engine configuration
@@ -49,13 +60,32 @@ CONFIG = {
 }
 
 # ============================================================================
+# TRIGGER FUNCTIONS
+# ============================================================================
+
+
+def append_to_log(notification):
+    """Append notification with timestamp to a JSON-lines log file."""
+    record = {
+        "received_at": datetime.now(timezone.utc).isoformat(),
+        "notification": notification,
+    }
+    with LOG_PATH.open("a", encoding="utf-8") as fh:
+        fh.write(json.dumps(record, default=str) + "\n")
+    pp(record)
+
+
+# ============================================================================
 # LISTENER SETUP
 # ============================================================================
 
 
 def create_listener():
     """Construct a listener configuration for Extremes-DT notifications."""
-    trigger = {"type": TRIGGER_TYPE}
+    trigger = {
+        "type": TRIGGER_TYPE,
+        "function": append_to_log,
+    }
     return {
         "event": LISTENER_EVENT,
         "request": AVISO_REQUEST,
@@ -69,19 +99,17 @@ def create_listener():
 
 
 def main():
-    """Start listening for real-time Extremes-DT data notifications."""
+    """Listen for notifications and append each to a JSON-lines log file."""
     try:
         listener = create_listener()
         listeners_config = {"listeners": [listener]}
         config = user_config.UserConfig(**CONFIG)
-        print("Loaded Aviso configuration:")
-        pp(CONFIG)
+        print(f"Logging Extremes-DT notifications to {LOG_PATH.resolve()}")
+        print(f"Stop with Ctrl+C.\n")
         nm = NotificationManager()
-        print(f"Listening for {LISTENER_EVENT} notifications on /de/data/ ...")
-        print("Stop with Ctrl+C.\n")
-        nm.listen(listeners=listeners_config, config=config)
+        nm.listen(listeners=listeners_config, config=config, from_date=START_DATE)
     except KeyboardInterrupt:
-        print("\nListener stopped.")
+        print(f"\nLogging stopped. Output saved to {LOG_PATH.resolve()}")
     except Exception as e:
         print(f"Failed to initialize the Notification Manager: {e}")
 

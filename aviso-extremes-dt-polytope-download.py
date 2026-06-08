@@ -1,29 +1,35 @@
 """
-End-to-end Extremes-DT processing workflow: notification → data download → regrid → plot.
+On every Extremes-DT data-availability notification, download the corresponding
+GRIB field from Polytope and save it to a local directory. No plotting, no
+regridding -- this is the minimal "notification -> bytes on disk" pipeline.
 
-When a new Extremes-DT forecast becomes available, this script:
-1. Receives the data-availability notification.
-2. Downloads the corresponding field via Polytope.
-3. Regrids to coarser resolution for faster processing.
-4. Generates a map plot focused on Europe.
+A polytope feature extraction is used to download only the 2m temperature
+time series at a single location, to learn more about polytope feature extraction
+visit https://github.com/destination-earth-digital-twins/polytope-examples
 
-Requires earthkit-data, earthkit-plots, earthkit-regrid and polytope-client.
+Requires:
+  * A valid DESP token, obtained via `python desp-authentication.py`
+    (written by default to `~/.polytopeapirc`).
+  * `earthkit-data` and `polytope-client` installed.
+
 """
-
-from datetime import datetime
+from datetime import datetime, timedelta
+from pathlib import Path
 from pprint import pprint as pp
 
 import earthkit.data
-import earthkit.plots
-import earthkit.regrid
 from pyaviso import NotificationManager, user_config
 
 # ============================================================================
 # CONFIGURATION
 # ============================================================================
 
-# Replay start point: publication time, not forecast base time
-START_DATE = datetime(2025, 11, 4)
+# Output directory for downloaded GRIB files
+OUT_DIR = Path("downloads/")
+OUT_DIR.mkdir(parents=True, exist_ok=True)
+
+# Replay/start position: publication time, NOT forecast base time
+START_DATE = datetime.now() - timedelta(days=13)
 
 # Listener event type (must be "data" for Extremes-DT)
 LISTENER_EVENT = "data"
@@ -36,9 +42,9 @@ AVISO_REQUEST = {
     "class": "d1",
     "expver": "0001",
     "stream": "oper",
-    "step": [0, 3, 6, 9, 12, 15, 18, 21, 24],
-    "levtype": "sfc",
     "type": "fc",
+    "levtype": "sfc",
+    "step": [0, 6, 12],
 }
 
 # Aviso server and notification engine configuration
@@ -63,59 +69,50 @@ CONFIG = {
 # ============================================================================
 
 
-def do_something(notification):
-    """Download, regrid, and plot temperature data on notification."""
-    pp(notification)
+def download(notification):
+    """Download and save GRIB data for the notified forecast step."""
+    req = notification.get("request", {})
 
-    #    for key, value in notification.items():
-    #        print(key, value)
+    # Example location: Lisbon, Portugal
+    LOCATION = (38, -9.5)
 
-    notification_dic = notification["request"]
-    rdate = notification_dic["date"]
-    rtime = notification_dic["time"]
-    rstep = notification_dic["step"]
-
-    # Download 2m temperature (param=167) from Extremes DT at 4 km resolution
-
-    request = {
+    polytope_request = {
+        "dataset": "extremes-dt",
         "class": "d1",
         "expver": "0001",
         "stream": "oper",
-        "dataset": "extremes-dt",
-        "date": rdate,
-        "time": rtime,
         "type": "fc",
         "levtype": "sfc",
-        "step": rstep,
-        "param": "167",
+        "date": req["date"],
+        "time": req["time"],
+        "step": req["step"],
+        "param": "167",  # 2m temperature
+        "feature": {
+            "type": "timeseries",
+            "points": [[LOCATION[0], LOCATION[1]]],
+            "time_axis": "date",
+        },
     }
 
-    # data is an earthkit streaming object but with stream=False will download data immediately
+    out_path = OUT_DIR / (
+        f"t2m_{req['date']}_{req['time']}_step{req['step']}.grib"
+    )
+    if out_path.exists():
+        print(f"skip (exists): {out_path.name}")
+        return
+
+    print(f"Downloading -> {out_path}")
+    pp(polytope_request)
+
     data = earthkit.data.from_source(
         "polytope",
         "destination-earth",
-        request,
+        polytope_request,
         address="polytope.lumi.apps.dte.destination-earth.eu",
         stream=False,
     )
-
-    data.to_xarray()
-
-    # regrid to 1x1 degree
-    out_grid = {"grid": [0.1, 0.1]}
-    data_interpolated = earthkit.regrid.interpolate(
-        data, out_grid=out_grid, method="linear"
-    )
-    data_interpolated.to_xarray()
-
-    chart = earthkit.plots.Map(domain="Europe")
-    chart.quickplot(data_interpolated[0])
-
-    chart.title("{variable_name} in {time}")
-    chart.coastlines()
-    chart.gridlines()
-    chart.save(f"2t-extremes-dt-{rdate}{rtime}Z-step{rstep}.png")
-    chart.show()
+    data.to_target("file", out_path)
+    print(f"Done: {out_path} ({out_path.stat().st_size / 1024:.1f} KiB)")
 
 
 # ============================================================================
@@ -127,7 +124,7 @@ def create_listener():
     """Construct a listener configuration for Extremes-DT notifications."""
     trigger = {
         "type": TRIGGER_TYPE,
-        "function": do_something,
+        "function": download,
     }
     return {
         "event": LISTENER_EVENT,
@@ -142,21 +139,25 @@ def create_listener():
 
 
 def main():
-    """Start listening for Extremes-DT notifications and process each one."""
+    """Start listening and download data for each notification."""
     try:
         listener = create_listener()
         listeners_config = {"listeners": [listener]}
         config = user_config.UserConfig(**CONFIG)
-        print("Loaded Aviso configuration:")
-        pp(CONFIG)
+        print(f"Downloading Extremes-DT notifications to {OUT_DIR.resolve()}")
+        print(f"Replaying from {START_DATE.isoformat()} UTC")
+        print(f"Stop with Ctrl+C.\n")
         nm = NotificationManager()
-        print(f"Replaying notifications from {START_DATE.isoformat()} UTC ...")
-        print("Stop with Ctrl+C.\n")
-        nm.listen(listeners=listeners_config, from_date=START_DATE, config=config)
+        nm.listen(
+            listeners=listeners_config,
+            from_date=START_DATE,
+            config=config,
+        )
     except KeyboardInterrupt:
-        print("\nListener stopped.")
+        print(f"\nListener stopped. Downloads saved to {OUT_DIR.resolve()}")
     except Exception as e:
         print(f"Failed to initialize the Notification Manager: {e}")
+
 
 
 if __name__ == "__main__":
