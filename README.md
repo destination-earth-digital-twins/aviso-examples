@@ -229,7 +229,7 @@ Although they are similar, the aviso request dictionary only accepts the followi
 | `type`    | `"fc"`                    | Forecast                                        |
 | `levtype` | `"sfc"`, `"pl"`, `"sol"`  | Level type (surface, pressure levels, soil)     |
 | `date`    | `"YYYYMMDD"`              | Forecast base date                              |
-| `time`    | `"0000"`, `"1200"`        | Forecast base time                              |
+| `time`    | `"00"`                    | Forecast base time (only 00 available)          |
 | `step`    | `0`, `[0, 3, 6, ...]`     | Forecast lead time in hours                     |
 
 Each value can be a scalar or a list — for example,

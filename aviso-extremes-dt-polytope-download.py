@@ -24,6 +24,10 @@ from pyaviso import NotificationManager, user_config
 # CONFIGURATION
 # ============================================================================
 
+# Output directory for downloaded GRIB files
+OUT_DIR = Path(__file__).parent / "downloads"
+OUT_DIR.mkdir(parents=True, exist_ok=True)
+
 # Replay/start position: publication time, NOT forecast base time
 START_DATE = datetime.now() - timedelta(days=13)
 
@@ -90,14 +94,10 @@ def download(notification):
         },
     }
 
-    out_file = f"t2m_{req['date']}_{req['time']}_step{req['step']}.grib"
-    
-    if Path(out_file).exists():
-        print(f"skip (exists): {Path(out_file).name}")
-        return
+    out_file = f"t2m_{req['date']}_{req['time']}_step{req['step']}"
+    out_path = OUT_DIR / out_file
 
     print(f"Downloading -> {out_file}")
-    pp(polytope_request)
 
     data = earthkit.data.from_source(
         "polytope",
@@ -106,8 +106,9 @@ def download(notification):
         address="polytope.lumi.apps.dte.destination-earth.eu",
         stream=False,
     )
-    data.to_target("file", out_file)
-    print(f"Done: {out_file} ({Path(out_file).stat().st_size / 1024:.1f} KiB)")
+
+    data.to_target("file", str(out_path), out_format="grib")
+    print(f"Done: {out_path} ({out_path.stat().st_size / 1024:.1f} KiB)")
 
 
 # ============================================================================
