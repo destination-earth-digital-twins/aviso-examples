@@ -191,7 +191,7 @@ do when a match is found. It has three required parts:
 
 ```python
 listener = {
-    "event": "data",
+    "event": "data", # always use "event": "data" for destine
     "request": { ... },        # filter keys
     "triggers": [{...}, ...],  # one or more triggers
 }
@@ -203,7 +203,10 @@ listeners_config = {"listeners": [listener]}
 For DestinE Digital Twin data, the event is always:
 
 ```python
-LISTENER_EVENT = "data"
+listener = {
+    "event": "data",
+    ...
+    }
 ```
 
 The `pyaviso` schema also defines `mars` and `dissemination` events used in
