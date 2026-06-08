@@ -30,7 +30,7 @@ from pyaviso import NotificationManager, user_config
 # ============================================================================
 
 # Publication-time window (UTC). Choose a window strictly in the past.
-TO_DATE = datetime.now()
+TO_DATE = datetime.now() - timedelta(days=1)
 FROM_DATE = TO_DATE - timedelta(days=14)
 
 # Listener event type (must be "data" for Extremes-DT)

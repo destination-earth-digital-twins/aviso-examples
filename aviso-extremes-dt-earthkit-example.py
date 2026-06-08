@@ -10,7 +10,7 @@ When a new Extremes-DT forecast becomes available, this script:
 Requires earthkit-data, earthkit-plots, earthkit-regrid and polytope-client.
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from pprint import pprint as pp
 
 import earthkit.data
@@ -23,7 +23,7 @@ from pyaviso import NotificationManager, user_config
 # ============================================================================
 
 # Replay start point: publication time, not forecast base time
-START_DATE = datetime(2025, 11, 4)
+FROM_DATE = datetime.now() - timedelta(days=14)
 
 # Listener event type (must be "data" for Extremes-DT)
 LISTENER_EVENT = "data"
@@ -150,9 +150,9 @@ def main():
         print("Loaded Aviso configuration:")
         pp(CONFIG)
         nm = NotificationManager()
-        print(f"Replaying notifications from {START_DATE.isoformat()} UTC ...")
+        print(f"Replaying notifications from {FROM_DATE.isoformat()} UTC ...")
         print("Stop with Ctrl+C.\n")
-        nm.listen(listeners=listeners_config, from_date=START_DATE, config=config)
+        nm.listen(listeners=listeners_config, from_date=FROM_DATE, config=config)
     except KeyboardInterrupt:
         print("\nListener stopped.")
     except Exception as e:

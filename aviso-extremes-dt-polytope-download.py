@@ -24,10 +24,6 @@ from pyaviso import NotificationManager, user_config
 # CONFIGURATION
 # ============================================================================
 
-# Output directory for downloaded GRIB files
-OUT_DIR = Path("downloads/")
-OUT_DIR.mkdir(parents=True, exist_ok=True)
-
 # Replay/start position: publication time, NOT forecast base time
 START_DATE = datetime.now() - timedelta(days=13)
 
@@ -94,14 +90,13 @@ def download(notification):
         },
     }
 
-    out_path = OUT_DIR / (
-        f"t2m_{req['date']}_{req['time']}_step{req['step']}.grib"
-    )
-    if out_path.exists():
-        print(f"skip (exists): {out_path.name}")
+    out_file = f"t2m_{req['date']}_{req['time']}_step{req['step']}.grib"
+    
+    if Path(out_file).exists():
+        print(f"skip (exists): {Path(out_file).name}")
         return
 
-    print(f"Downloading -> {out_path}")
+    print(f"Downloading -> {out_file}")
     pp(polytope_request)
 
     data = earthkit.data.from_source(
@@ -111,8 +106,8 @@ def download(notification):
         address="polytope.lumi.apps.dte.destination-earth.eu",
         stream=False,
     )
-    data.to_target("file", out_path)
-    print(f"Done: {out_path} ({out_path.stat().st_size / 1024:.1f} KiB)")
+    data.to_target("file", out_file)
+    print(f"Done: {out_file} ({Path(out_file).stat().st_size / 1024:.1f} KiB)")
 
 
 # ============================================================================
@@ -144,7 +139,7 @@ def main():
         listener = create_listener()
         listeners_config = {"listeners": [listener]}
         config = user_config.UserConfig(**CONFIG)
-        print(f"Downloading Extremes-DT notifications to {OUT_DIR.resolve()}")
+        print(f"Downloading Extremes-DT notifications")
         print(f"Replaying from {START_DATE.isoformat()} UTC")
         print(f"Stop with Ctrl+C.\n")
         nm = NotificationManager()
@@ -154,7 +149,7 @@ def main():
             config=config,
         )
     except KeyboardInterrupt:
-        print(f"\nListener stopped. Downloads saved to {OUT_DIR.resolve()}")
+        print(f"\nListener stopped. Downloads saved")
     except Exception as e:
         print(f"Failed to initialize the Notification Manager: {e}")
 

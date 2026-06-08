@@ -8,7 +8,7 @@ appended as one JSON document per line to `aviso-extremes-dt-log-<timestamp>.jso
 """
 
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from pprint import pprint as pp
 
@@ -19,7 +19,7 @@ from pyaviso import NotificationManager, user_config
 # ============================================================================
 
 # Replay start point: publication time, not forecast base time
-START_DATE = datetime(2025, 11, 4)
+FROM_DATE = datetime.now() - timedelta(days=5)
 
 # Output file with timestamp to avoid overwrites
 SCRIPT_NAME = Path(__file__).stem
@@ -107,7 +107,7 @@ def main():
         print(f"Logging Extremes-DT notifications to {LOG_PATH.resolve()}")
         print(f"Stop with Ctrl+C.\n")
         nm = NotificationManager()
-        nm.listen(listeners=listeners_config, config=config, from_date=START_DATE)
+        nm.listen(listeners=listeners_config, config=config, from_date=FROM_DATE)
     except KeyboardInterrupt:
         print(f"\nLogging stopped. Output saved to {LOG_PATH.resolve()}")
     except Exception as e:
