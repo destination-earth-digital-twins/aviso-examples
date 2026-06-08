@@ -19,11 +19,15 @@ matplotlib.use('agg')
 import earthkit.data
 import earthkit.plots
 import earthkit.regrid
+from pathlib import Path
 from pyaviso import NotificationManager, user_config
 
 # ============================================================================
 # CONFIGURATION
 # ============================================================================
+# Output directory for downloaded PNG files
+OUT_DIR = Path(__file__).parent / "downloads"
+OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # Replay start point: publication time, not forecast base time
 FROM_DATE = datetime.now() - timedelta(days=14)
@@ -117,7 +121,7 @@ def do_something(notification):
     chart.title("{variable_name} in {time}")
     chart.coastlines()
     chart.gridlines()
-    chart.save(f"2t-extremes-dt-{rdate}{rtime}Z-step{rstep}.png")
+    chart.save(OUT_DIR / f"2t-extremes-dt-{rdate}{rtime}Z-step{rstep}.png")
     chart.show()
 
 
