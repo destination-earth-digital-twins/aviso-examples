@@ -1,4 +1,6 @@
 import json
+import os
+import sys
 from getpass import getpass
 from pathlib import Path
 from typing import Annotated, Optional
@@ -33,6 +35,35 @@ class Config(ConfigModel):
         Field(description='The file to write the token to (or "stdout")'),
         CLIArg("-o", "--outpath"),
     ] = str(Path().home() / ".polytopeapirc")
+    aviso_outpath: Annotated[
+        str,
+        Field(
+            description='The Aviso credentials file to write the token to (or "none")'
+        ),
+        CLIArg("--aviso-outpath"),
+    ] = os.environ.get("AVISO_CREDENTIALS_FILE") or str(
+        Path().home() / ".config" / "aviso" / "credentials.yaml"
+    )
+
+
+def write_aviso_credentials(path, token):
+    """Write the token where pyaviso 2 looks for it, readable by the owner only.
+
+    The file is replaced in one step, so a listener that rereads it after a
+    401 never sees it half written.
+    """
+    path = Path(path).expanduser()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(path.name + ".tmp")
+    # A leftover temporary file may have looser permissions; start afresh so
+    # the token is never written to a file others can read.
+    tmp.unlink(missing_ok=True)
+    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    with os.fdopen(fd, "w") as file:
+        # A JSON string is a valid YAML string, so no YAML library is needed.
+        file.write(f"bearer:\n  token: {json.dumps(token)}\n")
+    os.replace(tmp, path)
+    return path
 
 
 config = Conflator("despauth", Config).load()
@@ -112,3 +143,10 @@ with requests.Session() as s:
             print(f"Token successfully written to {config.outpath}")
     else:
         print(token)
+
+    # The same token authenticates to Aviso (pyaviso 2 and the aviso CLI).
+    if config.aviso_outpath != "none":
+        written = write_aviso_credentials(config.aviso_outpath, token)
+        # Keep stdout to the token alone when it is being piped.
+        out = sys.stderr if config.outpath == "stdout" else sys.stdout
+        print(f"Aviso credentials successfully written to {written}", file=out)
