@@ -1,4 +1,8 @@
 """
+DEPRECATED: pyaviso 1 and aviso.lumi.apps.dte.destination-earth.eu will be
+decommissioned at the beginning of 2027. The same example for pyaviso 2 is in
+../v2/aviso-extremes-dt-earthkit-example.py.
+
 End-to-end Extremes-DT processing workflow: notification → data download → regrid → plot.
 
 When a new Extremes-DT forecast becomes available, this script:

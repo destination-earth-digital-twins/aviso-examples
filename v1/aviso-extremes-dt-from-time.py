@@ -1,4 +1,8 @@
 """
+DEPRECATED: pyaviso 1 and aviso.lumi.apps.dte.destination-earth.eu will be
+decommissioned at the beginning of 2027. The same example for pyaviso 2 is in
+../v2/aviso-extremes-dt-from-time.py.
+
 Replay notifications from a past publish time, then continue listening live.
 
 Unlike the real-time listener, this script:

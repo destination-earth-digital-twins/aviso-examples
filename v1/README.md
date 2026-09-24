@@ -1,4 +1,11 @@
-# Aviso for Destination Earth — Extremes Digital Twin <!-- omit from toc -->
+# Aviso for Destination Earth — Extremes Digital Twin (pyaviso 1) <!-- omit from toc -->
+
+> [!CAUTION]
+> **Deprecated.** These examples use **pyaviso 1** and the server at
+> `aviso.lumi.apps.dte.destination-earth.eu`. Both will be **decommissioned at
+> the beginning of 2027**. New work should use the pyaviso 2 examples in
+> [`../v2/`](../v2/), and existing workflows should move over before then.
+> The [repository README](../README.md) explains the differences.
 
 This repository provides documentation and example scripts for using **Aviso**
 to receive data-availability notifications for **Destination Earth (DestinE)
@@ -81,7 +88,8 @@ To obtain DESP credentials:
 2. Apply for upgraded access as described in the
    [access policy](https://platform.destine.eu/support-pages/access-policy/).
 
-Once upgraded access is granted, run the [`desp-authentication.py`](desp-authentication.py) script.
+Once upgraded access is granted, run the [`desp-authentication.py`](../desp-authentication.py) script
+from the repository root (`python desp-authentication.py`).
 It will prompt for your DestinE username and password, then retrieve a
 long-lived offline token from the Destination Earth Service Platform (DESP)
 and store it at `~/.polytopeapirc`. Re-authentication is only needed when that
@@ -93,16 +101,20 @@ token expires.
 
 Python ≥ 3.6 is required.
 
-Install all dependencies used in this repository:
+Install the dependencies for these examples from this folder, in a virtual
+environment of their own. pyaviso 1 and pyaviso 2 have the same package name,
+so they cannot be installed in the same environment:
 
 ```bash
+python3 -m venv .venv-v1
+source .venv-v1/bin/activate
 pip install -r requirements.txt
 ```
 
 For a minimal installation (listener only, no data download or plotting):
 
 ```bash
-pip install pyaviso
+pip install pyaviso==1.0.2
 ```
 
 ---
@@ -128,7 +140,7 @@ the Aviso host is permitted by your firewall or proxy.
 
 ## 6. Running the Examples
 
-All scripts can be run directly from the repository root.
+All scripts are run from this folder (`v1/`).
 
 **Real-time listener (echo trigger):**
 
@@ -383,7 +395,7 @@ your request filter.
 | [`aviso-extremes-dt-multi-listener.py`](aviso-extremes-dt-multi-listener.py) | Two listeners in one process with different filters (surface vs. wave). |
 | [`aviso-extremes-dt-replay-window.py`](aviso-extremes-dt-replay-window.py) | Replay a bounded historical window (`from_date` + `to_date`) and exit. |
 | [`aviso-extremes-dt-polytope-download.py`](aviso-extremes-dt-polytope-download.py) | Download GRIB data to disk for every matching step (no plotting). |
-| [`desp-authentication.py`](desp-authentication.py) | Obtain a DESP offline token and store it for Polytope access. |
+| [`../desp-authentication.py`](../desp-authentication.py) | Obtain a DESP offline token and store it for Polytope access (and for pyaviso 2). |
 
 ---
 
@@ -411,7 +423,7 @@ your request filter.
 | --- | --- |
 | Script prints `Listening to /de/data/ …` and no notifications arrive | No matching data published since you started, or filter is too narrow. Try a `from_date` in the past. |
 | `ConnectionError` / TLS errors | Outbound port 443 to `aviso.lumi.apps.dte.destination-earth.eu` is blocked by your network. |
-| Polytope download fails with 401 / 403 | Refresh the DESP token by re-running `desp-authentication.py`. |
+| Polytope download fails with 401 / 403 | Refresh the DESP token by re-running `desp-authentication.py` from the repository root. |
 | `from_date` replay returns fewer events than expected | `from_date` is a publish time, not a forecast base time — see [§8.1](#81-from_date-is-not-a-forecast-base-time). |
 | Catch-up replays the same notifications on every restart | The local state file is missing or being reset — check the Aviso config directory (default: `~/aviso/`). |
 

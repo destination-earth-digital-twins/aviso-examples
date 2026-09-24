@@ -1,4 +1,8 @@
 """
+DEPRECATED: pyaviso 1 and aviso.lumi.apps.dte.destination-earth.eu will be
+decommissioned at the beginning of 2027. The same example for pyaviso 2 is in
+../v2/aviso-extremes-dt-multi-listener.py.
+
 Register multiple listeners with different filters in a single Aviso session.
 
 This example shows two parallel subscriptions:

@@ -1,4 +1,8 @@
 """
+DEPRECATED: pyaviso 1 and aviso.lumi.apps.dte.destination-earth.eu will be
+decommissioned at the beginning of 2027. The same example for pyaviso 2 is in
+../v2/aviso-extremes-dt-replay-window.py.
+
 Replay Extremes-DT notifications inside a bounded historical window and exit.
 
 Unlike `aviso-extremes-dt-from-time.py`, which catches up from a given moment

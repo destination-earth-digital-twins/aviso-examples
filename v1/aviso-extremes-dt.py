@@ -1,4 +1,8 @@
 """
+DEPRECATED: pyaviso 1 and aviso.lumi.apps.dte.destination-earth.eu will be
+decommissioned at the beginning of 2027. The same example for pyaviso 2 is in
+../v2/aviso-extremes-dt.py.
+
 Minimal real-time listener for Extremes-DT data-availability notifications.
 
 This script demonstrates the simplest listening pattern:

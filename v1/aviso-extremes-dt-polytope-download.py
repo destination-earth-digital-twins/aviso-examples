@@ -1,4 +1,8 @@
 """
+DEPRECATED: pyaviso 1 and aviso.lumi.apps.dte.destination-earth.eu will be
+decommissioned at the beginning of 2027. The same example for pyaviso 2 is in
+../v2/aviso-extremes-dt-polytope-download.py.
+
 On every Extremes-DT data-availability notification, download the corresponding
 GRIB field from Polytope and save it to a local directory. No plotting, no
 regridding -- this is the minimal "notification -> bytes on disk" pipeline.
