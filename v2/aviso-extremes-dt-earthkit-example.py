@@ -11,6 +11,7 @@ Requires earthkit-data, earthkit-plots, earthkit-regrid and polytope-client,
 and a DESP token from `python desp-authentication.py` in the repository root.
 """
 
+import logging
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -24,6 +25,8 @@ import pyaviso
 # Render plots to files only. No figure exists yet, so the backend can still be
 # selected after earthkit-plots has imported matplotlib.
 matplotlib.use("agg")
+
+logger = logging.getLogger(__name__)
 
 # ============================================================================
 # CONFIGURATION
@@ -117,6 +120,7 @@ def do_something(notification):
 
 def main():
     """Start listening for Extremes-DT notifications and process each one."""
+    logging.basicConfig(format="%(levelname)s %(name)s: %(message)s")
     start = FROM_DATE.strftime("%Y-%m-%dT%H:%M:%SZ")
     try:
         client = pyaviso.AvisoClient(base_url=AVISO_URL)
@@ -129,9 +133,11 @@ def main():
             for notification in notifications:
                 try:
                     do_something(notification)
-                except Exception as e:
-                    # One failed download must not stop the listener.
-                    print(f"Skipped #{notification.sequence}: {e}")
+                except Exception:
+                    # A failure in any step (Polytope, network, regridding,
+                    # plotting or file system) skips that notification only;
+                    # the listener continues. The traceback shows the cause.
+                    logger.exception("Skipped notification #%s", notification.sequence)
     except KeyboardInterrupt:
         print("\nListener stopped.")
     except pyaviso.HistoryGapError as e:

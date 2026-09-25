@@ -17,6 +17,7 @@ Requires:
   * `earthkit-data` and `polytope-client` installed.
 """
 
+import logging
 import shutil
 import sys
 from datetime import datetime, timedelta, timezone
@@ -24,6 +25,8 @@ from pathlib import Path
 
 import earthkit.data
 import pyaviso
+
+logger = logging.getLogger(__name__)
 
 # ============================================================================
 # CONFIGURATION
@@ -108,6 +111,7 @@ def download(notification):
 
 def main():
     """Start listening and download data for each notification."""
+    logging.basicConfig(format="%(levelname)s %(name)s: %(message)s")
     start = START_DATE.strftime("%Y-%m-%dT%H:%M:%SZ")
     try:
         client = pyaviso.AvisoClient(base_url=AVISO_URL)
@@ -121,9 +125,11 @@ def main():
             for notification in notifications:
                 try:
                     download(notification)
-                except Exception as e:
-                    # One failed download must not stop the listener.
-                    print(f"Skipped #{notification.sequence}: {e}")
+                except Exception:
+                    # A failed download (Polytope, network or file system)
+                    # skips that notification only; the listener continues.
+                    # The traceback shows the cause.
+                    logger.exception("Skipped notification #%s", notification.sequence)
     except KeyboardInterrupt:
         print(f"\nListener stopped. Downloads saved in {OUT_DIR}")
     except pyaviso.HistoryGapError as e:
