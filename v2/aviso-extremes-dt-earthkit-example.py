@@ -1,5 +1,5 @@
 """
-End-to-end Extremes-DT processing workflow: notification → data download → regrid → plot.
+Complete Extremes-DT workflow: notification, download, regridding and plot.
 
 When a new Extremes-DT forecast becomes available, this script:
 1. Receives the data-availability notification.

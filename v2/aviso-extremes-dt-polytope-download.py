@@ -1,11 +1,14 @@
 """
-On every Extremes-DT data-availability notification, download the corresponding
-data from Polytope and save it to a local directory. No plotting, no
-regridding -- this is the minimal "notification -> bytes on disk" pipeline.
+Download the data announced by each Extremes-DT notification from Polytope.
 
-A polytope feature extraction is used to download only the 2m temperature
-time series at a single location, to learn more about polytope feature extraction
-visit https://github.com/destination-earth-digital-twins/polytope-examples
+For every data-availability notification, the script downloads the
+corresponding data and saves it to a local directory. It performs no
+regridding or plotting: it is the minimal pipeline from a notification to a
+file on disk.
+
+A Polytope feature extraction downloads only the 2 m temperature time series
+at a single location. Feature extraction is described in
+https://github.com/destination-earth-digital-twins/polytope-examples
 
 A feature extraction returns CoverageJSON rather than GRIB, so each result is
 saved as a `.covjson` file.
