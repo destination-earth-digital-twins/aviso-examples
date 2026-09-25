@@ -34,7 +34,7 @@ decommissioned at the beginning of 2027. The
 
 ## 1. What is Aviso?
 
-[Aviso](https://sites.ecmwf.int/docs/aviso-client/stable/) is a notification
+[Aviso](https://sites.ecmwf.int/docs/aviso-client/main/) is a notification
 system developed by **ECMWF**. It announces time-critical events, such as the
 availability of a new forecast step, so that workflows can react to them
 without polling. For Destination Earth, Aviso announces new Digital Twin data
@@ -474,12 +474,12 @@ with the same name in [`../v1/`](../v1/).
 
 ## 12. References
 
-- pyaviso 2 documentation: <https://sites.ecmwf.int/docs/aviso-client/stable/>
-  - Python guide: <https://sites.ecmwf.int/docs/aviso-client/stable/python/overview.html>
-  - Filters and start positions: <https://sites.ecmwf.int/docs/aviso-client/stable/python/listen.html>
-  - Triggers: <https://sites.ecmwf.int/docs/aviso-client/stable/python/triggers.html>
-  - Several listeners: <https://sites.ecmwf.int/docs/aviso-client/stable/python/listen-many.html>
-  - State and resume: <https://sites.ecmwf.int/docs/aviso-client/stable/python/state-and-resume.html>
+- pyaviso 2 documentation: <https://sites.ecmwf.int/docs/aviso-client/main/>
+  - Python guide: <https://sites.ecmwf.int/docs/aviso-client/main/python/overview.html>
+  - Filters and start positions: <https://sites.ecmwf.int/docs/aviso-client/main/python/listen.html>
+  - Triggers: <https://sites.ecmwf.int/docs/aviso-client/main/python/triggers.html>
+  - Several listeners: <https://sites.ecmwf.int/docs/aviso-client/main/python/listen-many.html>
+  - State and resume: <https://sites.ecmwf.int/docs/aviso-client/main/python/state-and-resume.html>
 - pyaviso on PyPI: <https://pypi.org/project/pyaviso/>
 - Destination Earth user guide: <https://platform.destine.eu/services/documents-and-api/doc/?service_name=climate-dt-user-guide>
 - Polytope examples repository: <https://github.com/destination-earth-digital-twins/polytope-examples>
