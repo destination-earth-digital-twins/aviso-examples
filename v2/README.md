@@ -60,7 +60,7 @@ pip install -r requirements.txt
 For a minimal installation (listening only, no data download or plotting):
 
 ```bash
-pip install "pyaviso>=2.2.1,<3" conflator lxml requests
+pip install "pyaviso>=2.2.2,<3" conflator lxml requests
 ```
 
 The last three are for `desp-authentication.py`.
