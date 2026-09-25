@@ -15,14 +15,15 @@ import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+import earthkit.data
+import earthkit.plots
+import earthkit.regrid
 import matplotlib
+import pyaviso
 
+# Render plots to files only. No figure exists yet, so the backend can still be
+# selected after earthkit-plots has imported matplotlib.
 matplotlib.use("agg")
-
-import earthkit.data  # noqa: E402
-import earthkit.plots  # noqa: E402
-import earthkit.regrid  # noqa: E402
-import pyaviso  # noqa: E402
 
 # ============================================================================
 # CONFIGURATION
