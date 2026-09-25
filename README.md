@@ -68,10 +68,10 @@ The script asks for your DestinE username and password and obtains a
 long-lived offline token from the Destination Earth Service Platform (DESP).
 It writes the token to two files:
 
-| File                               | Used by                                           |
-| ---------------------------------- | ------------------------------------------------- |
-| `~/.polytopeapirc`                 | Polytope, to download data (both versions)        |
-| `~/.config/aviso/credentials.yaml` | pyaviso 2 and the `aviso` command, to listen      |
+| File                               | Used by                                      |
+| ---------------------------------- | -------------------------------------------- |
+| `~/.polytopeapirc`                 | Polytope, to download data (both versions)   |
+| `~/.config/aviso/credentials.yaml` | pyaviso 2 and the `aviso` command, to listen |
 
 Run the script again when the token expires. A running pyaviso 2 listener that
 reads its credential from `credentials.yaml` does not need to be restarted.
@@ -139,20 +139,20 @@ python aviso-extremes-dt.py
 
 ## 4. Migrating from v1 to v2
 
-| pyaviso 1                                              | pyaviso 2                                                         |
-| ------------------------------------------------------ | ----------------------------------------------------------------- |
-| `NotificationManager()` plus a `CONFIG` dict           | `pyaviso.AvisoClient(base_url=AVISO_URL)`                         |
-| `"auth_type": "none"`                                  | the DESP credential in `~/.config/aviso/credentials.yaml`         |
-| a listener dict: `event`, `request`, `triggers`        | `client.listen("data", filter=..., triggers=...)`                 |
-| `"request": {...}`                                     | `filter={...}`, with the same keys                                |
-| a list of values: `"step": [0, 6, 12]`                 | `"step": {"in": [0, 6, 12]}`                                      |
-| a `function` trigger                                   | `Trigger.function(f)`, or a plain `for notification in ...:` loop |
-| `notification["request"]["date"]`                      | `notification.identifier["date"]` (values are strings)            |
-| `echo`, `log`, `command`, `post` triggers              | `Trigger.echo()`, `Trigger.log(path)`, `Trigger.command(...)`, `Trigger.post(url)` |
-| `from_date=datetime(...)`                              | `start_from="2026-09-01T00:00:00Z"` (a UTC string)                |
-| `to_date=datetime(...)`                                | `mode="replay_only"`, and leave the loop at the end time          |
-| several listeners in one `listen()` call               | `client.listen_many({name: {...}, ...})`                          |
-| automatic catch-up after a restart                     | `state_store=pyaviso.JsonFileStore(path)`                         |
+| pyaviso 1                                       | pyaviso 2                                                                          |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `NotificationManager()` plus a `CONFIG` dict    | `pyaviso.AvisoClient(base_url=AVISO_URL)`                                          |
+| `"auth_type": "none"`                           | the DESP credential in `~/.config/aviso/credentials.yaml`                          |
+| a listener dict: `event`, `request`, `triggers` | `client.listen("data", filter=..., triggers=...)`                                  |
+| `"request": {...}`                              | `filter={...}`, with the same keys                                                 |
+| a list of values: `"step": [0, 6, 12]`          | `"step": {"in": [0, 6, 12]}`                                                       |
+| a `function` trigger                            | `Trigger.function(f)`, or a plain `for notification in ...:` loop                  |
+| `notification["request"]["date"]`               | `notification.identifier["date"]` (values are strings)                             |
+| `echo`, `log`, `command`, `post` triggers       | `Trigger.echo()`, `Trigger.log(path)`, `Trigger.command(...)`, `Trigger.post(url)` |
+| `from_date=datetime(...)`                       | `start_from="2026-09-01T00:00:00Z"` (a UTC string)                                 |
+| `to_date=datetime(...)`                         | `mode="replay_only"`, and leave the loop at the end time                           |
+| several listeners in one `listen()` call        | `client.listen_many({name: {...}, ...})`                                           |
+| automatic catch-up after a restart              | `state_store=pyaviso.JsonFileStore(path)`                                          |
 
 Each of these constructs is used in at least one script in [`v2/`](v2/). The
 [v2 guide](v2/README.md) describes them in detail.

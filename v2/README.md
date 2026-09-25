@@ -97,11 +97,11 @@ the script are described in
 
 ## 4. Service Endpoints and Connectivity
 
-| Setting               | Value                                                   |
-| --------------------- | ------------------------------------------------------- |
-| Aviso server          | `https://aviso2.lumi.apps.dte.destination-earth.eu`     |
-| Port                  | `443` (HTTPS)                                           |
-| Polytope host (data)  | `polytope.lumi.apps.dte.destination-earth.eu`           |
+| Setting              | Value                                               |
+| -------------------- | --------------------------------------------------- |
+| Aviso server         | `https://aviso2.lumi.apps.dte.destination-earth.eu` |
+| Port                 | `443` (HTTPS)                                       |
+| Polytope host (data) | `polytope.lumi.apps.dte.destination-earth.eu`       |
 
 The schema endpoint of the server does not require a credential. It can be
 used to test connectivity and to list the filter keys that the server accepts:
@@ -198,17 +198,17 @@ The filter uses keys from the MARS language. A notification is delivered only
 when **every** key in the filter matches. A filter with fewer keys matches more
 notifications.
 
-| Key       | Typical value         | Meaning                                  | Several values with `{"in": [...]}` |
-| --------- | --------------------- | ---------------------------------------- | ----------------------------------- |
-| `class`   | `"d1"`                | Destination Earth class                  | no                                  |
-| `expver`  | `"0001"`              | Experiment version (operational)         | no                                  |
-| `stream`  | `"oper"`, `"wave"`    | Data stream                              | yes                                 |
-| `type`    | `"fc"`                | Forecast                                 | no                                  |
-| `levtype` | `"sfc"`, `"pl"`, `"hl"` | Level type                             | yes                                 |
-| `domain`  | `"g"`                 | Global                                   | yes                                 |
-| `date`    | `"YYYYMMDD"`          | Forecast base date                       | no                                  |
-| `time`    | `"0000"`              | Forecast base time                       | no                                  |
-| `step`    | `6`                   | Forecast lead time in hours              | yes, and ranges                     |
+| Key       | Typical value           | Meaning                          | Several values with `{"in": [...]}` |
+| --------- | ----------------------- | -------------------------------- | ----------------------------------- |
+| `class`   | `"d1"`                  | Destination Earth class          | no                                  |
+| `expver`  | `"0001"`                | Experiment version (operational) | no                                  |
+| `stream`  | `"oper"`, `"wave"`      | Data stream                      | yes                                 |
+| `type`    | `"fc"`                  | Forecast                         | no                                  |
+| `levtype` | `"sfc"`, `"pl"`, `"hl"` | Level type                       | yes                                 |
+| `domain`  | `"g"`                   | Global                           | yes                                 |
+| `date`    | `"YYYYMMDD"`            | Forecast base date               | no                                  |
+| `time`    | `"0000"`                | Forecast base time               | no                                  |
+| `step`    | `6`                     | Forecast lead time in hours      | yes, and ranges                     |
 
 A single value matches exactly. Where pyaviso 1 accepted a list of values,
 pyaviso 2 accepts an `in` constraint:
@@ -243,12 +243,12 @@ keys.
 `listen()` delivers each notification as an object with the following
 attributes:
 
-| Attribute          | Example                                              |
-| ------------------ | ---------------------------------------------------- |
-| `identifier`       | `{"class": "d1", "date": "20260921", "time": "0000", "step": "6", ...}` |
-| `payload`          | additional data from the producer, or `None`         |
-| `sequence`         | `8935`, the position of the notification on the server |
-| `cloudevent`       | the complete CloudEvent; `cloudevent["time"]` is the publication time |
+| Attribute    | Example                                                                 |
+| ------------ | ----------------------------------------------------------------------- |
+| `identifier` | `{"class": "d1", "date": "20260921", "time": "0000", "step": "6", ...}` |
+| `payload`    | additional data from the producer, or `None`                            |
+| `sequence`   | `8935`, the position of the notification on the server                  |
+| `cloudevent` | the complete CloudEvent; `cloudevent["time"]` is the publication time   |
 
 All `identifier` values are **strings**, including `step`. They can be used
 directly in a Polytope request. For arithmetic, convert them first, for
@@ -277,14 +277,14 @@ client.listen("data", filter=FILTER, triggers=[Trigger.function(download)]).run(
 Built-in **triggers** perform an action for each notification before the loop
 receives it, without additional code:
 
-| Trigger                     | Action                                                      |
-| --------------------------- | ----------------------------------------------------------- |
+| Trigger                     | Action                                                         |
+| --------------------------- | -------------------------------------------------------------- |
 | `Trigger.echo()`            | Print the notification to standard output. Useful for testing. |
-| `Trigger.log(path)`         | Append the notification to a JSON Lines file.               |
-| `Trigger.command(cmd)`      | Run a shell command.                                        |
-| `Trigger.post(url)`         | Forward the [CloudEvent](https://cloudevents.io/) over HTTP. |
-| `Trigger.webhook(url, ...)` | Send an HTTP request with a configurable body.              |
-| `Trigger.teams(url)`        | Post a card to a Microsoft Teams workflow webhook.          |
+| `Trigger.log(path)`         | Append the notification to a JSON Lines file.                  |
+| `Trigger.command(cmd)`      | Run a shell command.                                           |
+| `Trigger.post(url)`         | Forward the [CloudEvent](https://cloudevents.io/) over HTTP.   |
+| `Trigger.webhook(url, ...)` | Send an HTTP request with a configurable body.                 |
+| `Trigger.teams(url)`        | Post a card to a Microsoft Teams workflow webhook.             |
 
 ```python
 with client.listen(
