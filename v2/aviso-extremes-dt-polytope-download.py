@@ -92,7 +92,7 @@ def download(notification):
     out_file = f"t2m_{req['date']}_{req['time']}_step{req['step']}.covjson"
     out_path = OUT_DIR / out_file
 
-    print(f"Downloading -> {out_file}")
+    logger.info("Downloading %s", out_file)
 
     data = earthkit.data.from_source(
         "polytope",
@@ -104,7 +104,7 @@ def download(notification):
 
     # earthkit-data keeps the downloaded CoverageJSON at data.path
     shutil.copyfile(data.path, out_path)
-    print(f"Done: {out_path} ({out_path.stat().st_size / 1024:.1f} KiB)")
+    logger.info("Saved %s (%.1f KiB)", out_path, out_path.stat().st_size / 1024)
 
 
 # ============================================================================
@@ -114,7 +114,10 @@ def download(notification):
 
 def main():
     """Start listening and download data for each notification."""
-    logging.basicConfig(format="%(levelname)s %(name)s: %(message)s")
+    # Progress of this script at INFO; other libraries keep the default
+    # WARNING level.
+    logging.basicConfig(format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+    logger.setLevel(logging.INFO)
     start = START_DATE.strftime("%Y-%m-%dT%H:%M:%SZ")
     try:
         client = pyaviso.AvisoClient(base_url=AVISO_URL)

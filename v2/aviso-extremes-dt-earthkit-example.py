@@ -63,9 +63,9 @@ FILTER = {
 
 def do_something(notification):
     """Download, regrid, and plot temperature data on notification."""
-    print(notification)
 
     identifier = notification.identifier
+    logger.info("Processing notification #%s: %s", notification.sequence, identifier)
     rdate = identifier["date"]
     rtime = identifier["time"]
     rstep = identifier["step"]
@@ -109,7 +109,9 @@ def do_something(notification):
     chart.title("{variable_name} in {time}")
     chart.coastlines()
     chart.gridlines()
-    chart.save(OUT_DIR / f"2t-extremes-dt-{rdate}{rtime}Z-step{rstep}.png")
+    out_path = OUT_DIR / f"2t-extremes-dt-{rdate}{rtime}Z-step{rstep}.png"
+    chart.save(out_path)
+    logger.info("Saved %s", out_path)
     chart.show()
 
 
@@ -120,7 +122,10 @@ def do_something(notification):
 
 def main():
     """Start listening for Extremes-DT notifications and process each one."""
-    logging.basicConfig(format="%(levelname)s %(name)s: %(message)s")
+    # Progress of this script at INFO; other libraries keep the default
+    # WARNING level.
+    logging.basicConfig(format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+    logger.setLevel(logging.INFO)
     start = FROM_DATE.strftime("%Y-%m-%dT%H:%M:%SZ")
     try:
         client = pyaviso.AvisoClient(base_url=AVISO_URL)
