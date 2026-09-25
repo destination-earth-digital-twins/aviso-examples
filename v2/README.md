@@ -42,7 +42,7 @@ once.
 
 pyaviso 2 is a new client for a new server. It is not a drop-in upgrade of
 pyaviso 1: listeners, filters and start positions are written differently.
-Section 4 of the [repository README](../README.md#4-moving-from-v1-to-v2) maps
+Section 4 of the [repository README](../README.md#4-migrating-from-v1-to-v2) maps
 each pyaviso 1 construct to its pyaviso 2 equivalent.
 
 ---
