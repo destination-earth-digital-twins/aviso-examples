@@ -139,12 +139,12 @@ python aviso-extremes-dt.py
 | a listener dict: `event`, `request`, `triggers`        | `client.listen("data", filter=..., triggers=...)`                 |
 | `"request": {...}`                                     | `filter={...}`, with the same keys                                |
 | a list of values: `"step": [0, 6, 12]`                 | `"step": {"in": [0, 6, 12]}`                                      |
-| a `function` trigger                                   | a plain `for notification in ...:` loop                           |
+| a `function` trigger                                   | `Trigger.function(f)`, or a plain `for notification in ...:` loop |
 | `notification["request"]["date"]`                      | `notification.identifier["date"]` (values are strings)            |
 | `echo`, `log`, `command`, `post` triggers              | `Trigger.echo()`, `Trigger.log(path)`, `Trigger.command(...)`, `Trigger.post(url)` |
 | `from_date=datetime(...)`                              | `start_from="2026-09-01T00:00:00Z"` (a UTC string)                |
 | `to_date=datetime(...)`                                | `mode="replay_only"` and stop at the end time in the loop         |
-| several listeners in one `listen()` call               | one `listen()` per filter; run them together with `AsyncAvisoClient` |
+| several listeners in one `listen()` call               | `client.listen_many({name: {...}, ...})`                          |
 | catch-up after a restart, automatically                | `state_store=pyaviso.JsonFileStore(path)`                         |
 
 Each row is shown in a script in [`v2/`](v2/); the [v2 guide](v2/README.md)

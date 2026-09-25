@@ -18,6 +18,7 @@ of 2027. The [repository README](../README.md) compares the two versions.
   - [6.3 Filter Keys (MARS-like)](#63-filter-keys-mars-like)
   - [6.4 The Notification Object](#64-the-notification-object)
   - [6.5 Processing: the Loop and Triggers](#65-processing-the-loop-and-triggers)
+  - [6.6 Several Listeners](#66-several-listeners)
 - [7. Catch-up, Replay and Resume](#7-catch-up-replay-and-resume)
   - [7.1 Start Positions are Publication Times, Not Forecast Base Times](#71-start-positions-are-publication-times-not-forecast-base-times)
   - [7.2 The Replay Limit](#72-the-replay-limit)
@@ -166,8 +167,7 @@ environment variable (or `AVISO_USERNAME` with `AVISO_PASSWORD`), an `auth:`
 block in `~/.config/aviso/config.yaml`, then `~/.config/aviso/credentials.yaml`. `print(client.config)` shows which one was
 used.
 
-`pyaviso.AsyncAvisoClient` is the same client for `asyncio` code; see
-`aviso-extremes-dt-multi-listener.py`.
+`pyaviso.AsyncAvisoClient` is the same client for `asyncio` code.
 
 ### 6.2 Event Type
 
@@ -242,12 +242,21 @@ arithmetic. `print(notification)` prints the whole CloudEvent as JSON.
 
 ### 6.5 Processing: the Loop and Triggers
 
-In pyaviso 2 your code is a plain loop; there is no `function` trigger:
+In pyaviso 2 your code is a plain loop:
 
 ```python
 with client.listen("data", filter=FILTER) as notifications:
     for notification in notifications:
         download(notification.identifier)
+```
+
+`Trigger.function` calls a Python function for each notification instead,
+and `run()` replaces the loop:
+
+```python
+from pyaviso import Trigger
+
+client.listen("data", filter=FILTER, triggers=[Trigger.function(download)]).run()
 ```
 
 Built-in **triggers** run an action for every notification before it reaches
@@ -271,6 +280,25 @@ with client.listen(
     for notification in notifications:
         ...
 ```
+
+### 6.6 Several Listeners
+
+`listen_many()` opens several listeners, each with its own filter and
+triggers, and processes their notifications in one loop. Each item is the
+listener name and the notification:
+
+```python
+listeners = {
+    "surface": {"event_type": "data", "filter": SURFACE_FILTER},
+    "wave": {"event_type": "data", "filter": WAVE_FILTER},
+}
+with client.listen_many(listeners) as notifications:
+    for name, notification in notifications:
+        ...
+```
+
+`aviso-extremes-dt-multi-listener.py` gives each listener a trigger and calls
+`run()` instead of writing the loop.
 
 ---
 
@@ -385,7 +413,7 @@ your filter.
 | [`aviso-extremes-dt-replay-window.py`](aviso-extremes-dt-replay-window.py) | Replay a bounded historical window and exit. |
 | [`aviso-extremes-dt-resume.py`](aviso-extremes-dt-resume.py) | Save the position and resume after a restart (new in v2). |
 | [`aviso-extremes-dt-log.py`](aviso-extremes-dt-log.py) | Persist every notification to a JSON-lines file with `Trigger.log`. |
-| [`aviso-extremes-dt-multi-listener.py`](aviso-extremes-dt-multi-listener.py) | Two subscriptions in one process with different filters (surface vs. wave). |
+| [`aviso-extremes-dt-multi-listener.py`](aviso-extremes-dt-multi-listener.py) | Two listeners with different filters in one loop (surface and wave). |
 | [`aviso-extremes-dt-polytope-download.py`](aviso-extremes-dt-polytope-download.py) | Download a 2 m temperature time series from Polytope for every matching step. |
 | [`aviso-extremes-dt-earthkit-example.py`](aviso-extremes-dt-earthkit-example.py) | End-to-end workflow: notification → Polytope download → regrid → Europe map plot. |
 

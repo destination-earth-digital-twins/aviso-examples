@@ -1,17 +1,15 @@
 """
 Run several listeners with different filters in one process.
 
-This example shows two parallel subscriptions:
-1. Surface forecast products (oper stream) -> a Python function.
-2. Wave forecast products (wave stream) -> the built-in echo trigger.
+This example defines two listeners:
+1. Surface forecast products (oper stream), processed by a Python function.
+2. Wave forecast products (wave stream), printed by the built-in echo trigger.
 
-pyaviso 2 has no listener list: each subscription is one `listen()` call. The
-asynchronous client runs them side by side in a single thread, which is the
-recommended pattern for reacting differently to different Extremes-DT
-products.
+`listen_many()` opens both listeners on one client and processes their
+notifications in a single loop, one at a time and in arrival order. It is the
+pyaviso 2 equivalent of passing a list of listeners to pyaviso 1.
 """
 
-import asyncio
 import sys
 from datetime import datetime, timedelta, timezone
 
@@ -63,7 +61,8 @@ def on_surface(notification):
     print(
         "[surface] base={date} {time}Z step={step} ready".format(
             date=i.get("date"), time=i.get("time"), step=i.get("step")
-        )
+        ),
+        flush=True,
     )
 
 
@@ -71,38 +70,18 @@ def on_surface(notification):
 # LISTENERS
 # ============================================================================
 
-
-async def surface_listener(client, start):
-    """Call on_surface for every surface forecast notification."""
-    async with client.listen(
-        EVENT_TYPE, filter=SURFACE_FILTER, start_from=start
-    ) as notifications:
-        async for notification in notifications:
-            on_surface(notification)
-
-
-async def wave_listener(client, start):
-    """Print every wave forecast notification with the echo trigger."""
-    async with client.listen(
-        EVENT_TYPE, filter=WAVE_FILTER, start_from=start, triggers=[Trigger.echo()]
-    ) as notifications:
-        async for _ in notifications:
-            pass  # the echo trigger has already printed it
-
-
-async def run():
-    client = pyaviso.AsyncAvisoClient(base_url=AVISO_URL)
-    print(client.config)
-    start = FROM_DATE.strftime("%Y-%m-%dT%H:%M:%SZ")
-    print(f"Listening for {EVENT_TYPE} notifications published from {start} ...")
-    print("Stop with Ctrl+C.\n")
-    # If either listener fails, gather raises its error and asyncio.run then
-    # cancels the other one, so a broken subscription never half-runs silently.
-    await asyncio.gather(
-        surface_listener(client, start),
-        wave_listener(client, start),
-    )
-
+LISTENERS = {
+    "surface": {
+        "event_type": EVENT_TYPE,
+        "filter": SURFACE_FILTER,
+        "triggers": [Trigger.function(on_surface)],
+    },
+    "wave": {
+        "event_type": EVENT_TYPE,
+        "filter": WAVE_FILTER,
+        "triggers": [Trigger.echo()],
+    },
+}
 
 # ============================================================================
 # MAIN
@@ -111,15 +90,26 @@ async def run():
 
 def main():
     """Start listening for both surface and wave notifications."""
+    start = FROM_DATE.strftime("%Y-%m-%dT%H:%M:%SZ")
     try:
-        asyncio.run(run())
+        client = pyaviso.AvisoClient(base_url=AVISO_URL)
+        # The echo trigger writes to standard output directly. Flushing keeps
+        # these lines in order with its output when the output is redirected.
+        print(client.config, flush=True)
+        print(f"Listening for {EVENT_TYPE} notifications published from {start} ...")
+        print("Stop with Ctrl+C.\n", flush=True)
+        # run() processes notifications until it is interrupted. If one
+        # listener fails, both are closed and the error is raised, with the
+        # listener name at the start of its message.
+        client.listen_many(LISTENERS, start_from=start).run()
     except KeyboardInterrupt:
         print("\nListener stopped.")
     except pyaviso.HistoryGapError as e:
         if e.reason == "replay_limit_reached":
             sys.exit(
-                "Replay stopped: more notifications match than the server "
-                "replays at once. Narrow the filters or start later."
+                f"Replay stopped for listener '{e.listener}': more notifications "
+                "match than the server replays at once. Narrow its filter or "
+                "start later."
             )
         sys.exit(f"Aviso error: {e}")
     except pyaviso.AvisoError as e:
