@@ -2,8 +2,10 @@
 
 These examples use **pyaviso 2** and the Aviso server at
 `https://aviso2.lumi.apps.dte.destination-earth.eu`. They replace the pyaviso 1
-examples in [`../v1/`](../v1/). pyaviso 1 and its server will be
-decommissioned at the beginning of 2027. The
+examples in [`../v1/`](../v1/). The pyaviso 1 service will be
+decommissioned at the beginning of 2027; from then on,
+`aviso.lumi.apps.dte.destination-earth.eu` also serves the pyaviso 2 server,
+and either address can be used in these examples. The
 [repository README](../README.md) compares the two versions.
 
 ## Table of Contents <!-- omit from toc -->

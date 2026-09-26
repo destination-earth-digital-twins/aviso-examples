@@ -2,9 +2,11 @@
 
 > [!CAUTION]
 > **Deprecated.** These examples use **pyaviso 1** and the server at
-> `aviso.lumi.apps.dte.destination-earth.eu`. Both will be **decommissioned at
-> the beginning of 2027**. New work should use the pyaviso 2 examples in
-> [`../v2/`](../v2/), and existing workflows should move over before then.
+> `aviso.lumi.apps.dte.destination-earth.eu`. The pyaviso 1 service will be
+> **decommissioned at the beginning of 2027**; that address will then serve
+> the pyaviso 2 server, and these examples will no longer work. New work
+> should use the pyaviso 2 examples in [`../v2/`](../v2/), and existing
+> workflows should move over before then.
 > The [repository README](../README.md) explains the differences.
 
 This repository provides documentation and example scripts for using **Aviso**

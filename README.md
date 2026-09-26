@@ -6,11 +6,12 @@ Twin** data becomes available. The examples cover the **Extremes Digital Twin
 (Extremes-DT)**.
 
 > [!CAUTION]
-> **pyaviso 1 is deprecated.** pyaviso 1 and its server
-> `aviso.lumi.apps.dte.destination-earth.eu` will be **decommissioned at the
-> beginning of 2027**. New workflows should use pyaviso 2 and the
-> [`v2/`](v2/) examples. Existing workflows should be migrated before that
-> date.
+> **pyaviso 1 is deprecated.** The pyaviso 1 service will be
+> **decommissioned at the beginning of 2027**. Its address,
+> `aviso.lumi.apps.dte.destination-earth.eu`, will then serve the pyaviso 2
+> server, and pyaviso 1 will no longer work with it. New workflows should use
+> pyaviso 2 and the [`v2/`](v2/) examples. Existing workflows should be
+> migrated before that date.
 
 ## Table of Contents <!-- omit from toc -->
 
@@ -32,6 +33,10 @@ Twin** data becomes available. The examples cover the **Extremes Digital Twin
 | Python                   | 3.10 or newer                                       | 3.6 or newer (listener only)                    |
 | Examples and guide       | [`v2/`](v2/) and [`v2/README.md`](v2/README.md)     | [`v1/`](v1/) and [`v1/README.md`](v1/README.md) |
 | Status                   | supported                                           | decommissioned at the beginning of 2027         |
+
+From the beginning of 2027, `aviso.lumi.apps.dte.destination-earth.eu` will
+also serve the pyaviso 2 server, and either address can then be used with
+pyaviso 2.
 
 Both folders contain the same examples under the same file names. To see the
 changes needed to migrate a script, compare the two versions with
@@ -164,5 +169,5 @@ Each of these constructs is used in at least one script in [`v2/`](v2/). The
 ```text
 desp-authentication.py   DESP login: writes the Polytope token and the Aviso credential
 v2/                      pyaviso 2 examples and guide (recommended)
-v1/                      pyaviso 1 examples and guide (deprecated, removed in 2027)
+v1/                      pyaviso 1 examples and guide (deprecated; the service ends in 2027)
 ```
