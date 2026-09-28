@@ -27,7 +27,7 @@ Twin** data becomes available. The examples cover the **Extremes Digital Twin
 
 |                          | **v2** (recommended)                                | **v1** (deprecated)                             |
 | ------------------------ | --------------------------------------------------- | ----------------------------------------------- |
-| Python package           | `pyaviso>=2.2.2,<3`                                 | `pyaviso==1.0.2`                                |
+| Python package           | `pyaviso>=2.3.0,<3`                                 | `pyaviso==1.0.2`                                |
 | Server                   | `https://aviso2.lumi.apps.dte.destination-earth.eu` | `aviso.lumi.apps.dte.destination-earth.eu`      |
 | Credential for listening | DESP credential required                            | none                                            |
 | Python                   | 3.10 or newer                                       | 3.6 or newer (listener only)                    |

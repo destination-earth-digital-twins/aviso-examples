@@ -67,7 +67,7 @@ A minimal installation, for listening only, without data download or
 plotting:
 
 ```bash
-pip install "pyaviso>=2.2.2,<3" conflator lxml requests
+pip install "pyaviso>=2.3.0,<3" conflator lxml requests
 ```
 
 `conflator`, `lxml` and `requests` are required by `desp-authentication.py`.
