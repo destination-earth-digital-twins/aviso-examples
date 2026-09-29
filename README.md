@@ -155,7 +155,7 @@ python aviso-extremes-dt.py
 | `notification["request"]["date"]`               | `notification.identifier["date"]` (values are strings)                             |
 | `echo`, `log`, `command`, `post` triggers       | `Trigger.echo()`, `Trigger.log(path)`, `Trigger.command(...)`, `Trigger.post(url)` |
 | `from_date=datetime(...)`                       | `start_from="2026-09-01T00:00:00Z"` (a UTC string)                                 |
-| `to_date=datetime(...)`                         | `mode="replay_only"`, and leave the loop at the end time                           |
+| `to_date=datetime(...)`                         | `until="2026-09-02T00:00:00Z"` (a UTC string)                                      |
 | several listeners in one `listen()` call        | `client.listen_many({name: {...}, ...})`                                           |
 | automatic catch-up after a restart              | `state_store=pyaviso.JsonFileStore(path)`                                          |
 

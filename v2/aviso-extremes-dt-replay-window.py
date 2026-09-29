@@ -11,9 +11,9 @@ This is the right pattern when you want to:
   * Test processing code deterministically against real notifications,
   * Backfill a downstream system without subscribing to the live stream.
 
-`mode="replay_only"` makes the server end the stream once history has been
-sent. pyaviso 2 has no `to_date`; the loop stops at the first notification
-published after TO_DATE instead.
+`until` ends the replay with the last notification published at or before
+TO_DATE, and the loop then finishes on its own. Both ends of the window are
+inclusive.
 
 IMPORTANT: FROM_DATE/TO_DATE refer to the time the notification was
 PUBLISHED on the Aviso server (i.e. when the producer announced the data was
@@ -22,7 +22,6 @@ initialised at a specific cycle, use `date`/`time` in the filter and set
 the window generously around the production wall-clock.
 """
 
-import re
 import sys
 from datetime import datetime, timedelta, timezone
 
@@ -38,7 +37,8 @@ import pyaviso
 AVISO_URL = "https://aviso2.lumi.apps.dte.destination-earth.eu"
 
 # Publication-time window (UTC)
-TO_DATE = datetime.now(timezone.utc) - timedelta(days=1)
+# Whole seconds, so the window printed is exactly the window requested.
+TO_DATE = datetime.now(timezone.utc).replace(microsecond=0) - timedelta(days=1)
 FROM_DATE = TO_DATE - timedelta(days=14)
 
 # Event type (always "data" for Extremes-DT)
@@ -61,14 +61,6 @@ FILTER = {
 # ============================================================================
 
 
-def published_at(notification):
-    """When the notification was published, from its CloudEvent `time`."""
-    stamp = notification.cloudevent["time"].replace("Z", "+00:00")
-    # The server sends up to nanoseconds; datetime holds exactly microseconds.
-    stamp = re.sub(r"\.(\d+)", lambda m: "." + m.group(1)[:6].ljust(6, "0"), stamp)
-    return datetime.fromisoformat(stamp)
-
-
 def count_and_print(notification, count):
     """Display each notification with a running count."""
     i = notification.identifier
@@ -86,20 +78,19 @@ def count_and_print(notification, count):
 def main():
     """Replay a bounded historical window and exit."""
     start = FROM_DATE.strftime("%Y-%m-%dT%H:%M:%SZ")
+    end = TO_DATE.strftime("%Y-%m-%dT%H:%M:%SZ")
     count = 0
     try:
         client = pyaviso.AvisoClient(base_url=AVISO_URL)
         print(client.config)
         print("Replaying notifications published between:")
         print(f"  From: {start}")
-        print(f"  To:   {TO_DATE.strftime('%Y-%m-%dT%H:%M:%SZ')}")
+        print(f"  To:   {end}")
         print(f"Filter: {FILTER}\n")
         with client.listen(
-            EVENT_TYPE, filter=FILTER, start_from=start, mode="replay_only"
+            EVENT_TYPE, filter=FILTER, start_from=start, until=end
         ) as notifications:
             for notification in notifications:
-                if published_at(notification) > TO_DATE:
-                    break
                 count += 1
                 count_and_print(notification, count)
         print(f"\nReplay complete: {count} notifications.")

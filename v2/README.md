@@ -335,17 +335,32 @@ client.listen(
 
 `start_from` takes a **UTC time string**. An integer is interpreted as a
 sequence number, not as a date: `start_from=20260901` starts after sequence
-number 20,260,901. There is no `to_date` argument. To stop at a given time,
-use `mode="replay_only"` and leave the loop at the first notification
-published after that time, as `aviso-extremes-dt-replay-window.py` does.
+number 20,260,901.
+
+To stop at a given time, add `until`. It ends the replay with the last
+notification published at or before that time and implies
+`mode="replay_only"`:
+
+```python
+# Replay one day of notifications, then stop
+client.listen(
+    "data",
+    filter=FILTER,
+    start_from="2026-09-01T00:00:00Z",
+    until="2026-09-02T00:00:00Z",
+)
+```
+
+Both times are inclusive. `aviso-extremes-dt-replay-window.py` uses this
+pattern.
 
 ### 7.1 Start Positions are Publication Times, Not Forecast Base Times
 
 > [!WARNING]
-> `start_from` refers to the **time at which a notification was published**
-> on the Aviso server, that is, when the producer announced that a product was
-> available. It does **not** refer to the forecast base time (`date` and
-> `time` in the filter).
+> `start_from` and `until` refer to the **time at which a notification was
+> published** on the Aviso server, that is, when the producer announced that a
+> product was available. They do **not** refer to the forecast base time
+> (`date` and `time` in the filter).
 >
 > **Example:**
 > Data for the forecast initialised at `2025-11-04 00 UTC` usually becomes
