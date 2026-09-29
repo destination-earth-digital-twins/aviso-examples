@@ -36,10 +36,11 @@ import pyaviso
 # write it.
 AVISO_URL = "https://aviso2.lumi.apps.dte.destination-earth.eu"
 
-# Publication-time window (UTC)
+# Publication-time window (UTC). The server replays at most 10,000
+# notifications per request, so keep the window short for broad filters.
 # Whole seconds, so the window printed is exactly the window requested.
 TO_DATE = datetime.now(timezone.utc).replace(microsecond=0) - timedelta(days=1)
-FROM_DATE = TO_DATE - timedelta(days=14)
+FROM_DATE = TO_DATE - timedelta(days=1)
 
 # Event type (always "data" for Extremes-DT)
 EVENT_TYPE = "data"
