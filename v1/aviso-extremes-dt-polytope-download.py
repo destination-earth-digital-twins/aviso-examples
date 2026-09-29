@@ -1,4 +1,9 @@
 """
+DEPRECATED: the pyaviso 1 service will be decommissioned at the beginning of
+2027, and aviso.lumi.apps.dte.destination-earth.eu will then serve the pyaviso 2
+server, which this script cannot use. The same example for pyaviso 2 is in
+../v2/aviso-extremes-dt-polytope-download.py.
+
 On every Extremes-DT data-availability notification, download the corresponding
 GRIB field from Polytope and save it to a local directory. No plotting, no
 regridding -- this is the minimal "notification -> bytes on disk" pipeline.

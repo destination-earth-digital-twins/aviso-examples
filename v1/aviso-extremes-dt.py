@@ -1,15 +1,17 @@
 """
-Replay notifications from a past publish time, then continue listening live.
+DEPRECATED: the pyaviso 1 service will be decommissioned at the beginning of
+2027, and aviso.lumi.apps.dte.destination-earth.eu will then serve the pyaviso 2
+server, which this script cannot use. The same example for pyaviso 2 is in
+../v2/aviso-extremes-dt.py.
 
-Unlike the real-time listener, this script:
-- Replays notifications from START_DATE onward.
-- Catches up any missed notifications.
-- Then continues listening to new notifications.
+Minimal real-time listener for Extremes-DT data-availability notifications.
 
-This is useful for recovery after outages or to backfill initial setup.
+This script demonstrates the simplest listening pattern:
+- Define a request filter for Extremes-DT products.
+- Use the `echo` trigger to print notifications to stdout.
+- Continue listening until interrupted (Ctrl+C).
 """
 
-from datetime import datetime, timedelta
 from pprint import pprint as pp
 
 from pyaviso import NotificationManager, user_config
@@ -18,21 +20,18 @@ from pyaviso import NotificationManager, user_config
 # CONFIGURATION
 # ============================================================================
 
-# Replay start point: publication time, not forecast base time
-FROM_DATE = datetime.now() - timedelta(days=14)
-
 # Listener event type (must be "data" for Extremes-DT)
 LISTENER_EVENT = "data"
 
 # Trigger type: "echo" prints to stdout, "function" calls a Python function
-TRIGGER_TYPE = "function"
+TRIGGER_TYPE = "echo"
 
 # Request filter: only notifications matching ALL keys are delivered
 AVISO_REQUEST = {
     "class": "d1",
     "expver": "0001",
-    "stream": "oper",
-    "step": [0, 3, 6, 9, 12, 15, 18, 21, 24],
+    "stream": "wave",
+    "step": [1, 2, 3],
     "levtype": "sfc",
     "type": "fc",
 }
@@ -55,26 +54,13 @@ CONFIG = {
 }
 
 # ============================================================================
-# TRIGGER FUNCTIONS
-# ============================================================================
-
-
-def do_something(notification):
-    """Print the received notification."""
-    pp(notification)
-
-
-# ============================================================================
 # LISTENER SETUP
 # ============================================================================
 
 
 def create_listener():
     """Construct a listener configuration for Extremes-DT notifications."""
-    trigger = {
-        "type": TRIGGER_TYPE,
-        "function": do_something,
-    }
+    trigger = {"type": TRIGGER_TYPE}
     return {
         "event": LISTENER_EVENT,
         "request": AVISO_REQUEST,
@@ -88,7 +74,7 @@ def create_listener():
 
 
 def main():
-    """Replay from FROM_DATE, then continue listening for new notifications."""
+    """Start listening for real-time Extremes-DT data notifications."""
     try:
         listener = create_listener()
         listeners_config = {"listeners": [listener]}
@@ -96,9 +82,9 @@ def main():
         print("Loaded Aviso configuration:")
         pp(CONFIG)
         nm = NotificationManager()
-        print(f"Replaying notifications from {FROM_DATE.isoformat()} UTC ...")
+        print(f"Listening for {LISTENER_EVENT} notifications on /de/data/ ...")
         print("Stop with Ctrl+C.\n")
-        nm.listen(listeners=listeners_config, from_date=FROM_DATE, config=config)
+        nm.listen(listeners=listeners_config, config=config)
     except KeyboardInterrupt:
         print("\nListener stopped.")
     except Exception as e:

@@ -1,4 +1,9 @@
 """
+DEPRECATED: the pyaviso 1 service will be decommissioned at the beginning of
+2027, and aviso.lumi.apps.dte.destination-earth.eu will then serve the pyaviso 2
+server, which this script cannot use. The same example for pyaviso 2 is in
+../v2/aviso-extremes-dt-log.py.
+
 Persist every Extremes-DT data-availability notification to a JSON-lines log
 file using a Python `function` trigger.
 

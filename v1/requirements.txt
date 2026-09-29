@@ -1,0 +1,14 @@
+# pyaviso 1 examples. Install in their own virtual environment: pyaviso 1 and
+# pyaviso 2 share a package name and cannot be installed side by side.
+pyaviso==1.0.2
+# desp-authentication.py (in the repository root)
+conflator
+lxml
+requests
+# Polytope download, regridding and plotting examples
+earthkit-data
+earthkit-plots
+earthkit-regrid
+cf-units
+polytope-client
+matplotlib
