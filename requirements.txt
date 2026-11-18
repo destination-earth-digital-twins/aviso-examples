@@ -1,4 +1,4 @@
-pyaviso
+pyaviso==1.0.2
 conflator
 lxml
 requests
